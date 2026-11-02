@@ -16,6 +16,46 @@
   <meta name="HandheldFriendly" content="True">
   <meta name="MobileOptimized" content="320">
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0, maximum-scale=1, user-scalable=no, minimal-ui">
+  <style>
+    html, body {
+      margin: 0 !important;
+      padding: 8px !important;
+      overflow: hidden !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      height: 100vh !important;
+      box-sizing: border-box !important;
+    }
+    .game-explanation, .container > hr, .container > p:not(.game-intro) {
+      display: none !important;
+    }
+    .container {
+      margin: 0 auto !important;
+      transform-origin: top center !important;
+    }
+  </style>
+  <script>
+    function fit2048() {
+      var c = document.querySelector('.container');
+      if (!c) return;
+      var h = c.offsetHeight || 620;
+      var w = 500;
+      var availH = window.innerHeight - 16;
+      var availW = window.innerWidth - 16;
+      var scale = Math.min(1, availH / h, availW / w);
+      if (scale < 1) {
+        c.style.transform = 'scale(' + scale.toFixed(3) + ')';
+      } else {
+        c.style.transform = '';
+      }
+    }
+    window.addEventListener('resize', fit2048);
+    window.addEventListener('DOMContentLoaded', fit2048);
+    window.addEventListener('load', fit2048);
+    setTimeout(fit2048, 100);
+  </script>
 </head>
 <body>
   <div class="container">
@@ -98,3 +138,4 @@
   <script src="js/application.js"></script>
 </body>
 </html>
+
