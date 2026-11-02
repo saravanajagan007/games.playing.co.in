@@ -66,16 +66,13 @@ body {
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  gap: 40px;
-  width: 100%;
-  padding: 20px;
+  gap: 20px; width: 100%; padding: 10px;
 }
 .sidebar {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  width: 260px;
-  z-index: 10;
+  width: 210px; z-index: 10;
 }
 
 /* GLASSMORPHISM PANELS */
@@ -160,7 +157,7 @@ body {
 }
 .board-outer { position: relative; }
 .chess-board {
-  --board-size: min(80vh, calc(100vw - 650px)); /* Massive size */
+  --board-size: min(85vh, calc(100vw - 500px), 520px); /* Massive size */
   --sq-size: calc(var(--board-size) / 8);
   width: var(--board-size); height: var(--board-size);
   aspect-ratio: 1 / 1;

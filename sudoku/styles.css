@@ -21,7 +21,7 @@ body {
   display: flex;
   width: 350px;
   justify-content: center;
-  margin-top: 450px;
+  margin-top: 190px;
   color: black;
 }
 .numbers > * {
@@ -303,3 +303,4 @@ display: flex;
 width: 350px;
 justify-content: space-around;
 }
+

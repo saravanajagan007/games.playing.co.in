@@ -1,18 +1,53 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100vh;
+    background: #0e1116;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
 canvas {
     display: block;
-    margin: auto;
-    border: 1px solid black;
+    margin: 0 auto;
+    border: 2px solid #28293d;
+    border-radius: 8px;
+    background: #000;
+    max-height: calc(100vh - 65px);
+    max-width: 90vw;
+    width: auto;
+    height: auto;
+    aspect-ratio: 1 / 2;
+    object-fit: contain;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
 #playbutton {
-    width: 100px;
-    height: 50px;
-    display: block;
-    margin: auto;
-    margin-top: 10px;
-    font-family: Arial, sans-serif;
-    font-size: 30px;
-    font-weight: bold;
-    background-color: white;
+    min-width: 120px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px auto 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    background-color: #00d4aa;
+    color: #0e1116;
+    border: none;
+    border-radius: 8px;
     cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 212, 170, 0.4);
+    transition: transform 0.15s, background-color 0.15s;
+}
+
+#playbutton:hover {
+    background-color: #00ffcc;
+    transform: translateY(-2px);
 }
