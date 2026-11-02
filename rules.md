@@ -54,3 +54,30 @@ git add .
 git commit -m "feat: add new games / updates"
 git push origin main
 ```
+
+---
+
+## Mandatory Open-Source Game Sanitization Standard (Pre-Upload Checklist)
+Whenever an open-source or HTML5 game is added or updated in the repository, the following audit checklist MUST be performed before committing or deploying:
+
+1. **Delete Debug, Dev & Test Files:**
+   - Remove all auxiliary debug/test files (e.g. `*debug*.html`, `*dev*.html`, `*test*.html`, `*ios*.html`, `.git`, `.github`). Only production game files and assets must remain.
+
+2. **Strip Source Code Downloads & Repository Links:**
+   - Delete all source zip archives (e.g. `*.zip`, `*.tar.gz`).
+   - Remove all UI links or buttons offering source code downloads (e.g. "Download Source Code", "Download Zip", "Fork on GitHub", "View Repository").
+
+3. **Sanitize Author Credits & External Links:**
+   - Convert all outward hyperlinks (`<a href="http...">Author</a>`, personal portfolios, blogs, social media) to clean, static plain text (e.g. `<span>Author Name</span>`).
+   - Strip GitHub corner ribbons, "More Games" links, author demos/experiments links, and donation buttons (PayPal, Buy Me a Coffee).
+   - Strip mobile store badges and outward app redirects (Google Play, Apple App Store).
+
+4. **Eliminate Foreign Ads & Third-Party Analytics:**
+   - Remove any hardcoded third-party Google AdSense tags (`ca-pub-*`, `adsbygoogle`), foreign Google Analytics scripts (`UA-*`, `G-*`), or tracking telemetry (e.g. `a.js`, Facebook Pixel, AddThis).
+
+5. **Security & Embed Guard Requirement:**
+   - Every game entry file (`index.html`) MUST include `<script src="/embed-guard.js"></script>` at the top of the `<head>` section to enforce iframe-only embedding within `playing.co.in`.
+   - All assets (scripts, stylesheets, fonts) must use HTTPS or local relative paths (no mixed-content `http://`).
+
+6. **Pre-Deployment Verification Audit:**
+   - Before deploying, run a regex scan across all HTML and JS files for outward URLs (`href="http`, `window.open`, `.zip`, `debug`) to guarantee 100% compliance.
