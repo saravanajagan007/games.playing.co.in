@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solitaire - Klondike</title>
+    <link rel="stylesheet" href="./css/card-library/css/cardstarter.min.css">
+    <link rel="stylesheet" href="./css/main.css">
+    <script type="module" src="js/main.js"></script>
+</head>
+
+<body>
+    <div class="message-box" id="pre-game">
+        <h2>Click the stock to begin game</h2>
+        <sub>(Or click the icons on top-right to change settings or to display information)</sub>
+        <h3>Current Difficulty:</h3>
+        <h4><small><span id="difficulty-msg"></span></small> </h4>
+    </div>
+    <div class="message-box" id="post-game">
+        <h2>Congratulations!</h2>
+        <h3>You won!</h3>
+    </div>
+    <div class="game-container">
+        <div class="header">
+            <div class="icon" id="game-options">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="options-icon">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M14 21h-4l-.551-2.48a6.991 6.991 0 0 1-1.819-1.05l-2.424.763-2-3.464 1.872-1.718a7.055 7.055 0 0 1 0-2.1L3.206 9.232l2-3.464 2.424.763A6.992 6.992 0 0 1 9.45 5.48L10 3h4l.551 2.48a6.994 6.994 0 0 1 1.819 1.05l2.424-.763 2 3.464-1.872 1.718a7.05 7.05 0 0 1 0 2.1l1.872 1.718-2 3.464-2.424-.763a6.992 6.992 0 0 1-1.819 1.052L14 21z"
+                        class="fill-inside" />
+                    <circle cx="12" cy="12" r="3" class="fill-inside-bg"></circle>
+                </svg>
+            </div>
+            <div class="icon" id="about">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="about-icon">
+                    <path
+                        d="M13 22H10V19H13V22ZM13 17H10V16.993C10 15.343 10 13.918 10.672 12.92C11.1948 12.2574 11.8453 11.7065 12.585 11.3C12.919 11.086 13.234 10.883 13.499 10.672C14.6604 9.77306 15.1826 8.27392 14.831 6.84799C14.2747 5.51815 12.8593 4.76357 11.4451 5.04296C10.0309 5.32236 9.00877 6.55851 9 7.99999H6C6 4.68629 8.68629 1.99997 12 1.99997C14.3053 1.99307 16.4134 3.29894 17.434 5.36599C18.3507 7.47212 17.9883 9.91642 16.5 11.666C16.0475 12.1675 15.5396 12.616 14.986 13.003C14.5016 13.3371 14.0597 13.729 13.67 14.17C13.1193 15.0045 12.8819 16.0071 13 17Z"
+                        class="fill-inside" />
+                </svg>
+            </div>
+            <div class="icon" id="undo">
+                <svg xmlns="http://www.w3.org/2000/svg" stroke-width="40" viewBox="0 0 512 512" class="undo-icon">
+                    <path d="M240,424V328c116.4,0,159.39,33.76,208,96,0-119.23-39.57-240-208-240V88L64,256Z"
+                        stroke-linejoin="round" class="fill-inside" />
+                </svg>
+            </div>
+            <div class="icon" id="redo">
+                <svg xmlns="http://www.w3.org/2000/svg" stroke-width="40" viewBox="0 0 512 512" class="undo-icon">
+                    <path d="M240,424V328c116.4,0,159.39,33.76,208,96,0-119.23-39.57-240-208-240V88L64,256Z"
+                        stroke-linejoin="round" class="fill-inside" />
+                </svg>
+            </div>
+            <div class="icon" id="fast-forward">
+                <svg xmlns="http://www.w3.org/2000/svg" class="ff-icon" viewBox="0 0 16 16">
+                    <path
+                        d="M15.5 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V8.753l-6.267 3.636c-.54.313-1.233-.066-1.233-.697v-2.94l-6.267 3.636C.693 12.703 0 12.324 0 11.693V4.308c0-.63.693-1.01 1.233-.696L7.5 7.248v-2.94c0-.63.693-1.01 1.233-.696L15 7.248V4a.5.5 0 0 1 .5-.5z" />
+                </svg>
+            </div>
+            <div class="top-message" id="scoreboard"><b>Score:</b> <span id="score"></span></div>
+        </div>
+        <div class="upper-row">
+            <div class="slot large" id="deck-slot"></div>
+            <div class="slot large" id="waste-slot"></div>
+            <div class="slot large foundation" id="foundation-slot-1"></div>
+            <div class="slot large foundation" id="foundation-slot-2"></div>
+            <div class="slot large foundation" id="foundation-slot-3"></div>
+            <div class="slot large foundation" id="foundation-slot-4"></div>
+        </div>
+        <div class="lower-row">
+            <div class="slot large tableau" id="tableau-1"></div>
+            <div class="slot large tableau" id="tableau-2"></div>
+            <div class="slot large tableau" id="tableau-3"></div>
+            <div class="slot large tableau" id="tableau-4"></div>
+            <div class="slot large tableau" id="tableau-5"></div>
+            <div class="slot large tableau" id="tableau-6"></div>
+            <div class="slot large tableau" id="tableau-7"></div>
+        </div>
+        <div class="footer">
+            <button id="new-game"><b>New Game</b></button>
+        </div>
+
+        <div id="fake-drag" draggable="true">&nbsp;</div>
+        <div class="overlay">
+            <div class="popup" id="about-popup">
+                <div class="popup-header">
+                    <h2>About Solitaire</h2>
+                </div>
+                <div class="popup-content">
+                    <h3> Rules </h3>
+                    <hr>
+                    <p>
+                        Also known as Patience or Klondike, it is a single player game played with a standard 52-card
+                        deck
+                        without Jokers. After shuffling, a *tableau* of seven fanned piles of cards are laid from left
+                        to
+                        right, each pile containing one more card than the last. The first pile on the left contains a
+                        single face-up card, the second pile contains two cards, third pile three cards and so on... The
+                        top-most card of each pile is turned face up.
+                    </p>
+                    <p>
+                        The remaining cards form the *stock* and are placed face-down on the upper left corner.
+
+                        There are four *foundations* (light-colored rectangles in the screenshots): which are built
+                        **up**
+                        by suit starting with Ace (which is low in this game) to King. The tableau piles on the other
+                        hand
+                        can be built **down** in alternate colors.
+                    </p>
+                    <p>
+                        Every face-up card in a partial pile, or a complete pile, can be moved, as a unit, to another
+                        tableau pile on the basis of its highest card. Any empty piles can be filled with a King, or a
+                        pile
+                        of cards with a King.
+                    </p>
+                    <p> The aim of the game is to build up four stacks of cards starting with Ace and ending with King,
+                        all
+                        of the same suit, on one of the four foundations, at which time the player would have won.
+
+                        There are many variations of dealing from the stock to *waste* pile. In this implementation, we
+                        have
+                        1 or 3-draw modes, with no limit on passes through the stock (Solitaire has a very low win-rate
+                        anyways). You can also simulate a version of Klondike, known as *Thoughtful Solitaire* (through
+                        unlimited undos), which is when all the card locations are known to the player (this actually
+                        has a
+                        win probability of ~80%) - which is still different than playing with all cards face-up (since a
+                        smaller face-down card could still be blocking the game).
+                    </p>
+                    <hr>
+                    Attributions: <a target="_blank" href="https://icons8.com/icon/uGAleJyWHNzh/king-of-diamonds">King
+                        of Diamonds</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>, SVG icons by <a
+                        target="_blank" href="https://fontawesomeicons.com/">Font Awesome Icons</a>, Music by <a target="_blank" href="https://pixabay.com/users/olexy-25300778/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=152722">Olexy</a> from <a target="_blank" href="https://pixabay.com/music//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=152722">Pixabay</a>,
+                    CSS Cards Library provided by <a target="_blank" href="https://generalassemb.ly/">General
+                        Assembly</a>
+
+                </div>
+                <div class="popup-footer" style="padding-top: 20px;">
+                    Click anywhere to close popup
+                </div>
+            </div>
+
+            <div class="popup" id="options-popup">
+                <div class="popup-header">
+                    <h2>OPTIONS</h2>
+                </div>
+                <div class="popup-content">
+                    <div class="options-container">
+                        <div>
+                            <h2>Visuals</h2>
+                        </div>
+                        <div class="visuals">
+                            <div>
+                                <span><b>Deck Color:</b></span>
+                                <br>
+                                <input type="radio" id="reddeck" value="true" name="deckcolor">
+                                <label for="reddeck"><span class="red-deck">Red</span></label>
+                                <input type="radio" id="bluedeck" value="false" name="deckcolor">
+                                <label for="bluedeck"><span class="blue-deck">Blue</span></label>
+                            </div>
+
+                            <div>
+                                <span><b>Visual Feedback On:</b></span>
+                            </div>
+                            <div>
+                                <input type="checkbox" id="feedbackDragged" value="true">
+                                <label for="feedbackDragged">Dragged Cards</label>
+                                <input type="checkbox" id="feedbackDragOver" value="true"><label
+                                    for="feedbackDragOver">Dragged Over Piles</label>
+                            </div>
+                            <div>
+                                <span><b>Animations:</b></span>
+                            </div>
+                            <div>
+                                <input type="checkbox" id="enableAnimations" value="true">
+                                <label for="enableAnimations">Enable animations</label>
+                            </div>
+                            <div id="animation-speeds-div">
+                                <label for="animationSpeeds"><b>Animations Speed:</b></label>
+                                <select id="animationSpeeds">
+                                    <option value="turtle">Very Slow</option>
+                                    <option value="slow">Slow</option>
+                                    <option value="normal">Normal</option>
+                                    <option value="fast">Fast</option>
+                                    <option value="lightning">Very Fast</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <hr>
+                        </div>
+                        <div>
+                            <hr>
+                        </div>
+                        <div>
+                            <h2>Game</h2>
+                        </div>
+                        <div class="game">
+                            <div>
+                                <label for="thoughtfulSol"><b>Thoughtful Klondike</b><br><sub>(Unlimited
+                                        Undo's)</sub></label>
+                                <input type="checkbox" id="thoughtfulSol" value="true">
+                                <span style="margin-left: 5px;" id="scoring-span">
+                                    <label for="scoring"><b>Enable scoring</b></label>
+                                    <input type="checkbox" id="scoring">
+                                </span>
+                            </div>
+                            <div>
+                                <b>Difficulty:</b>
+                            </div>
+                            <div>
+                                <label for="draw-1">Draw-1</label><input type="radio" id="draw-1" value="1"
+                                    name="difficulty">
+                                <label for="draw-3">Draw-3</label><input type="radio" id="draw-3" value="3"
+                                    name="difficulty">
+                            </div>
+                            <div>
+                                <label for="passes">Passes through deck:</label>
+                                <select id="passes">
+                                    <option value="0">Unlimited</option>
+                                    <option value="1">1-pass</option>
+                                    <option value="3">3-pass</option>
+                                    <option value="5">5-pass</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <hr>
+                        </div>
+                        <div>
+                            <hr>
+                        </div>
+                        <div>
+                            <h2>Audio</h2>
+                        </div>
+                        <div class="audio">
+                            <div>
+                                <label for="music_enabled">Enable Background Music</label><input type="checkbox"
+                                    value="true" id="music_enabled"><br><sub>(If enabled, will automatically download
+                                    and begin playing when completed)</sub>
+                            </div>
+                            <div>
+                                <input type="range" min="0" max="100" value="0" id="music_volume" disabled>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="popup-footer">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

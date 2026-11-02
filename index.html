@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Playing.co.in Games CDN - Cloudflare Edge</title>
+  <meta name="description" content="High performance, zero-tracker, first-party HTML5 browser games powered by Playing.co.in and Cloudflare Pages.">
+  <link rel="icon" href="https://playing.co.in/favicon.ico">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background-color: #0b0f19;
+      color: #f1f5f9;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+    .game-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px -10px rgba(59, 130, 246, 0.4);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+  <!-- Navigation Header -->
+  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="https://playing.co.in" class="flex items-center gap-2 text-xl font-bold tracking-tight text-white hover:text-blue-400 transition">
+          <i class="fa-solid fa-gamepad text-blue-500 text-2xl"></i>
+          <span>Playing<span class="text-blue-500">.co.in</span></span>
+        </a>
+        <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-950/80 text-blue-400 border border-blue-800/60">Edge CDN</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="hidden sm:flex items-center gap-2 text-xs text-emerald-400 bg-emerald-950/50 px-3 py-1 rounded-full border border-emerald-800/50">
+          <span class="size-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>15 Games Online &bull; Cloudflare Edge</span>
+        </div>
+        <a href="https://playing.co.in" class="text-sm font-medium text-slate-300 hover:text-white transition flex items-center gap-1.5">
+          <span>Main Portal</span>
+          <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Banner -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1">
+    <div class="text-center max-w-3xl mx-auto mb-12">
+      <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-4">
+        First-Party <span class="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">HTML5 Games</span> Hub
+      </h1>
+      <p class="text-slate-400 text-base sm:text-lg">
+        Lightning-fast, zero-bloat browser games served from Cloudflare's global edge network. Fully responsive for desktop, tablet, and mobile.
+      </p>
+    </div>
+
+    <!-- Games Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      
+      <!-- 1. 2048 -->
+      <div class="game-card bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden transition duration-300 flex flex-col">
+        <div class="aspect-video w-full bg-slate-950 relative overflow-hidden">
+          <img src="2048/thumb.webp" alt="2048" class="w-full h-full object-cover">
+          <span class="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wider bg-amber-500/90 text-slate-950 px-2 py-0.5 rounded-md">Puzzle</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-white text-lg">2048 Classic</h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Slide matching numbers to merge them and reach the 2048 tile.</p>
+          </div>
+          <div class="mt-4 flex gap-2">
+            <a href="2048/" class="flex-1 text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs transition">Launch</a>
+            <a href="https://playing.co.in/game/2048-classic" class="py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition" title="Play on Portal"><i class="fa-solid fa-globe"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Hextris -->
+      <div class="game-card bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden transition duration-300 flex flex-col">
+        <div class="aspect-video w-full bg-slate-950 relative overflow-hidden">
+          <img src="hextris/thumb.webp" alt="Hextris" class="w-full h-full object-cover">
+          <span class="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wider bg-red-500/90 text-white px-2 py-0.5 rounded-md">Arcade</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-white text-lg">Hextris</h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Fast-paced hexagonal puzzle game inspired by Tetris.</p>
+          </div>
+          <div class="mt-4 flex gap-2">
+            <a href="hextris/" class="flex-1 text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs transition">Launch</a>
+            <a href="https://playing.co.in/game/hextris" class="py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition" title="Play on Portal"><i class="fa-solid fa-globe"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Clumsy Bird -->
+      <div class="game-card bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden transition duration-300 flex flex-col">
+        <div class="aspect-video w-full bg-slate-950 relative overflow-hidden">
+          <img src="clumsy-bird/thumb.webp" alt="Clumsy Bird" class="w-full h-full object-cover">
+          <span class="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wider bg-sky-500/90 text-white px-2 py-0.5 rounded-md">Casual</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-white text-lg">Clumsy Bird</h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Flap and navigate through obstacles in this colorful MelonJS remake.</p>
+          </div>
+          <div class="mt-4 flex gap-2">
+            <a href="clumsy-bird/" class="flex-1 text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs transition">Launch</a>
+            <a href="https://playing.co.in/game/clumsy-bird" class="py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition" title="Play on Portal"><i class="fa-solid fa-globe"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Pacman -->
+      <div class="game-card bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden transition duration-300 flex flex-col">
+        <div class="aspect-video w-full bg-slate-950 relative overflow-hidden">
+          <img src="pacman/thumb.webp" alt="Pacman" class="w-full h-full object-cover">
+          <span class="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wider bg-yellow-400/90 text-slate-950 px-2 py-0.5 rounded-md">Retro</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-white text-lg">Pacman Canvas</h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Classic arcade maze chase with ghosts, sound effects, and high scores.</p>
+          </div>
+          <div class="mt-4 flex gap-2">
+            <a href="pacman/" class="flex-1 text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs transition">Launch</a>
+            <a href="https://playing.co.in/game/pacman-canvas" class="py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition" title="Play on Portal"><i class="fa-solid fa-globe"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Sudoku -->
+      <div class="game-card bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden transition duration-300 flex flex-col">
+        <div class="aspect-video w-full bg-slate-950 relative overflow-hidden">
+          <img src="sudoku/thumb.webp" alt="Sudoku" class="w-full h-full object-cover">
+          <span class="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wider bg-indigo-500/90 text-white px-2 py-0.5 rounded-md">Brain</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-white text-lg">Sudoku Master</h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Dynamic 9x9 logic puzzles across Easy, Medium, and Hard difficulties.</p>
+          </div>
+          <div class="mt-4 flex gap-2">
+            <a href="sudoku/" class="flex-1 text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs transition">Launch</a>
+            <a href="https://playing.co.in/game/sudoku-master" class="py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition" title="Play on Portal"><i class="fa-solid fa-globe"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Chess -->
+      <div class="game-card bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden transition duration-300 flex flex-col">
+        <div class="aspect-video w-full bg-slate-950 relative overflow-hidden">
+          <img src="chess/thumb.webp" alt="Chess" class="w-full h-full object-cover">
+          <span class="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wider bg-emerald-500/90 text-white px-2 py-0.5 rounded-md">Strategy</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-white text-lg">Chess 2D Engine</h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Test your tactical skills against an AI opponent with minimax search.</p>
+          </div>
+          <div class="mt-4 flex gap-2">
+            <a href="chess/" class="flex-1 text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs transition">Launch</a>
+            <a href="https://playing.co.in/game/chess-2d-engine" class="py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition" title="Play on Portal"><i class="fa-solid fa-globe"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. Snake -->
+      <div class="game-card bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden transition duration-300 flex flex-col">
+        <div class="aspect-video w-full bg-slate-950 relative overflow-hidden">
+          <img src="snake/thumb.webp" alt="Snake" class="w-full h-full object-cover">
+          <span class="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wider bg-green-500/90 text-slate-950 px-2 py-0.5 rounded-md">Retro</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-white text-lg">Classic Snake</h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Eat food, grow longer, and avoid walls in this retro arcade favorite.</p>
+          </div>
+          <div class="mt-4 flex gap-2">
+            <a href="snake/" class="flex-1 text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs transition">Launch</a>
+            <a href="https://playing.co.in/game/classic-snake" class="py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition" title="Play on Portal"><i class="fa-solid fa-globe"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. Asteroids -->
+      <div class="game-card bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden transition duration-300 flex flex-col">
+        <div class="aspect-video w-full bg-slate-950 relative overflow-hidden">
+          <img src="asteroids/thumb.webp" alt="Asteroids" class="w-full h-full object-cover">
+          <span class="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wider bg-purple-500/90 text-white px-2 py-0.5 rounded-md">Shooter</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-white text-lg">Asteroids Reloaded</h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Vector space physics, laser blasters, and asteroid splitting action.</p>
+          </div>
+          <div class="mt-4 flex gap-2">
+            <a href="asteroids/" class="flex-1 text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs transition">Launch</a>
+            <a href="https://playing.co.in/game/asteroids-reloaded" class="py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition" title="Play on Portal"><i class="fa-solid fa-globe"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9. Breakout -->
+      <div class="game-card bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden transition duration-300 flex flex-col">
+        <div class="aspect-video w-full bg-slate-950 relative overflow-hidden">
+          <img src="breakout/thumb.webp" alt="Breakout" class="w-full h-full object-cover">
+          <span class="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wider bg-orange-500/90 text-white px-2 py-0.5 rounded-md">Arcade</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-white text-lg">Breakout DX</h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Smash through colorful brick walls with precise paddle ball control.</p>
+          </div>
+          <div class="mt-4 flex gap-2">
+            <a href="breakout/" class="flex-1 text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs transition">Launch</a>
+            <a href="https://playing.co.in/game/breakout-dx" class="py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition" title="Play on Portal"><i class="fa-solid fa-globe"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 10. Solitaire -->
+      <div class="game-card bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden transition duration-300 flex flex-col">
+        <div class="aspect-video w-full bg-slate-950 relative overflow-hidden">
+          <img src="solitaire/thumb.webp" alt="Solitaire" class="w-full h-full object-cover">
+          <span class="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wider bg-teal-500/90 text-white px-2 py-0.5 rounded-md">Card</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-white text-lg">Klondike Solitaire</h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">The timeless single-player card game with smooth drag-and-drop mechanics.</p>
+          </div>
+          <div class="mt-4 flex gap-2">
+            <a href="solitaire/" class="flex-1 text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs transition">Launch</a>
+            <a href="https://playing.co.in/game/klondike-solitaire" class="py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition" title="Play on Portal"><i class="fa-solid fa-globe"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 11. Minesweeper -->
+      <div class="game-card bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden transition duration-300 flex flex-col">
+        <div class="aspect-video w-full bg-slate-950 relative overflow-hidden">
+          <img src="minesweeper/thumb.webp" alt="Minesweeper" class="w-full h-full object-cover">
+          <span class="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wider bg-slate-500 text-white px-2 py-0.5 rounded-md">Puzzle</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-white text-lg">Minesweeper Classic</h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Clear the minefield without detonating hidden explosives.</p>
+          </div>
+          <div class="mt-4 flex gap-2">
+            <a href="minesweeper/" class="flex-1 text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs transition">Launch</a>
+            <a href="https://playing.co.in/game/minesweeper-classic" class="py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition" title="Play on Portal"><i class="fa-solid fa-globe"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 12. Space Invaders -->
+      <div class="game-card bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden transition duration-300 flex flex-col">
+        <div class="aspect-video w-full bg-slate-950 relative overflow-hidden">
+          <img src="space-invaders/thumb.webp" alt="Space Invaders" class="w-full h-full object-cover">
+          <span class="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wider bg-cyan-400 text-slate-950 px-2 py-0.5 rounded-md">Arcade</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-white text-lg">Space Invaders</h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Defend the earth from descending alien armadas and UFO motherships.</p>
+          </div>
+          <div class="mt-4 flex gap-2">
+            <a href="space-invaders/" class="flex-1 text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs transition">Launch</a>
+            <a href="https://playing.co.in/game/space-invaders" class="py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition" title="Play on Portal"><i class="fa-solid fa-globe"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 13. Tetris -->
+      <div class="game-card bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden transition duration-300 flex flex-col">
+        <div class="aspect-video w-full bg-slate-950 relative overflow-hidden">
+          <img src="tetris/thumb.webp" alt="Tetris" class="w-full h-full object-cover">
+          <span class="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wider bg-cyan-500 text-white px-2 py-0.5 rounded-md">Puzzle</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-white text-lg">Tetris Blocks</h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Rotate falling geometric tetrominoes to clear solid lines.</p>
+          </div>
+          <div class="mt-4 flex gap-2">
+            <a href="tetris/" class="flex-1 text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs transition">Launch</a>
+            <a href="https://playing.co.in/game/tetris-blocks" class="py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition" title="Play on Portal"><i class="fa-solid fa-globe"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 14. Connect Four -->
+      <div class="game-card bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden transition duration-300 flex flex-col">
+        <div class="aspect-video w-full bg-slate-950 relative overflow-hidden">
+          <img src="connect-four/thumb.webp" alt="Connect Four" class="w-full h-full object-cover">
+          <span class="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wider bg-blue-500 text-white px-2 py-0.5 rounded-md">Strategy</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-white text-lg">Connect 4 in a Row</h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Drop colored discs into the vertical grid to line up 4 pieces.</p>
+          </div>
+          <div class="mt-4 flex gap-2">
+            <a href="connect-four/" class="flex-1 text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs transition">Launch</a>
+            <a href="https://playing.co.in/game/connect-four" class="py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition" title="Play on Portal"><i class="fa-solid fa-globe"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 15. Pong -->
+      <div class="game-card bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden transition duration-300 flex flex-col">
+        <div class="aspect-video w-full bg-slate-950 relative overflow-hidden">
+          <img src="pong/thumb.webp" alt="Pong" class="w-full h-full object-cover">
+          <span class="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wider bg-zinc-300 text-slate-950 px-2 py-0.5 rounded-md">Sports</span>
+        </div>
+        <div class="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-white text-lg">Pong Classic 2D</h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">The arcade pioneer of digital table tennis against computer AI.</p>
+          </div>
+          <div class="mt-4 flex gap-2">
+            <a href="pong/" class="flex-1 text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs transition">Launch</a>
+            <a href="https://playing.co.in/game/pong-classic" class="py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition" title="Play on Portal"><i class="fa-solid fa-globe"></i></a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800 bg-slate-950/80 py-6 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <p>&copy; 2026 Playing.co.in &bull; Open-source games under MIT / Permissive Licenses.</p>
+      <div class="flex gap-4">
+        <a href="https://playing.co.in/privacy" class="hover:text-slate-300">Privacy Policy</a>
+        <a href="https://playing.co.in/terms" class="hover:text-slate-300">Terms of Service</a>
+        <a href="https://playing.co.in/dmca" class="hover:text-slate-300">DMCA Policy</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,756 @@
+:root {
+    --classic-green-bg: #006400;
+    --light-pink-bg: #d9d9d9;
+
+    --light-green: #5ba94b;
+
+    --icon-base: #f8ebcd;
+    --icon-highlight: #ffcd66;
+    --icon-stroke: #917c55;
+
+    --options-icon-fill: #24693D;
+    --options-icon-hover-fill: #398A5E;
+    --options-icon-active-fill: #306C4B;
+
+    --undo-icon-fill: #54A77B;
+    --undo-icon-hover-fill: #3D8061;
+    --undo-icon-active-fill: #3B6A44;
+
+    --about-icon-fill: #7BD3A4;
+    --about-icon-hover-fill: #5CBE8E;
+    --about-icon-active-fill: #669D76;
+
+    --button-bg: #6AA2BD;
+    --button-border: whitesmoke;
+
+    --drag-border-size: 5px;
+
+    --drag-border-valid: #5CBE8E;
+    --drag-border-invalid: #ff0000;
+
+    --foundation-bg: #b1b1a0;
+    --waste-bg: #9a88a0;
+
+    --bright-red-color: #FF4500;
+    --electric-blue-color: #7DF9FF;
+
+    --score-increase-color: #7DF9FF;
+    --score-decrease-color: #FF4500;
+
+    --scored-game-color: #8c1d88;
+
+}
+
+html {
+    font-family: 'Courier New', Courier, monospace;
+    display: flex;
+    justify-content: center;
+    background: var(--classic-green-bg);
+}
+
+button {
+    background-color: var(--icon-base);
+    border: 0.5vmin solid var(--icon-stroke);
+    border-radius: 1vmin;
+    outline: none;
+    padding: 1vmin 3vmin;
+    color: var(--icon-stroke);
+    margin-left: 5px;
+}
+
+button:hover {
+    background-color: var(--icon-stroke);
+    border-color: var(--icon-base);
+    color: white;
+    box-shadow: .25rem .25rem 0.35rem var(--icon-stroke);
+    filter: drop-shadow(.25rem .25rem 0.35rem var(--icon-stroke));
+    cursor: pointer;
+}
+
+button:active {
+    background-color: var(--icon-base);
+    border-color: var(--icon-stroke);
+    color: var(--icon-stroke);
+    box-shadow: none;
+    filter: none;
+}
+
+#new-game {
+    display: none;
+    opacity: 0;
+    transition: opacity ease-in-out 0.3s;
+
+}
+
+#new-game.show {
+    display: inline;
+    transition: opacity ease-in-out 0.3s;
+
+}
+
+
+body {
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+}
+
+.blur {
+    filter: blur(0.5em);
+}
+
+.game-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 1fr auto;
+    margin: 0;
+    padding: 0;
+    background-color: var(--classic-green-bg);
+    background-image: linear-gradient(var(--classic-green-bg), var(--light-green));
+    height: 100vh;
+    width: 100vw;
+}
+
+@media screen and (min-width:1200px) {
+    .game-container {
+        margin: 0 auto;
+        padding: 0 55px;
+    }
+
+    button {
+        margin-left: 0;
+    }
+
+    body {
+        max-width: 1200px;
+        background-color: var(--icon-base);
+    }
+}
+
+.card.back.red {
+    background-image: url('./card-library/images/backs/red.svg');
+}
+
+/* Upper row layout */
+.upper-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    margin: 0 50px;
+}
+
+/* Lower row layout */
+.lower-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 50px 10px;
+    align-items: flex-start;
+}
+
+/* Individual slots - for foundation and tableau */
+.slot {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    background-image: none;
+    padding: 0;
+    border: 0.15em dashed #245A11;
+    width: 4.0em;
+    height: 5.5em;
+}
+
+.slot.foundation {
+    display: block;
+    background-color: var(--foundation-bg);
+}
+
+.slot.foundation .card {
+    position: absolute;
+    margin-top: 0;
+}
+
+.slot.foundation:hover .card:last-child:not(:only-child) {
+    box-shadow: -.25rem .0 0.35rem var(--icon-stroke);
+    transform: translate(15px, 5px);
+}
+
+.slot.foundation:hover .card:last-child {
+    box-shadow: -.25rem .0 0.35rem var(--icon-stroke);
+    scale: 1.05;
+    ;
+}
+
+
+
+.slot.large {
+    font-size: 26px;
+}
+
+#waste-slot {
+    background-color: var(--waste-bg);
+}
+
+.tableau {
+    flex-direction: column-reverse;
+}
+
+.clone-pile {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-start;
+    background-image: none;
+    padding: 0;
+    border: none;
+    width: 4.0em;
+    height: 5.5em;
+    font-size: 26px;
+    pointer-events: none;
+    opacity: 0.9;
+}
+
+
+
+.card {
+    margin-left: 0;
+    transition: all 0.2s;
+}
+
+.card:first-child {
+    margin-top: 0;
+}
+
+#deck-slot:not(:has(:first-child)):hover {
+    cursor: pointer;
+    border-color: var(--icon-base);
+}
+
+#deck-slot:hover .card:last-child {
+    box-shadow: -.25rem .25rem 0.35rem var(--icon-stroke);
+    transform: translate(15px, -5px);
+}
+
+.card.large.on-tableau {
+    margin-top: -170px;
+    position: relative !important;
+    margin-bottom: 0;
+}
+
+.card.large.on-tableau:not(.back):not(:only-child):hover {
+
+    transform: scale(1.1);
+    box-shadow: .25rem .25rem 0.35rem var(--icon-stroke);
+}
+
+.card.large.on-tableau:not(:only-child):not(:last-child):not(.back):hover {
+    translate: -15px;
+}
+
+.card.large.on-tableau:not(.back):is(:last-child):hover {
+    box-shadow: .25rem .25rem 0.35rem var(--icon-stroke);
+    transform: scale(1.05);
+}
+
+.card.large.on-tableau:not(.back):is(:only-child):hover {
+    box-shadow: .25rem .25rem 0.35rem var(--icon-stroke);
+    transform: scale(1.05);
+}
+
+.card.large.on-tableau.back {
+    margin-top: -155px;
+    margin-bottom: 0;
+}
+
+
+.card.large.on-waste {
+    margin-bottom: calc(-5.5em * 0.9);
+    position: relative;
+}
+
+
+.card.large.on-waste:not(:only-child):not(:last-child):hover {
+    /* transform: translateX(-15px); */
+    translate: -15px;
+}
+
+.card.large.on-waste:is(:last-child):hover {
+    scale: 1.05;
+}
+
+.card.large.on-waste:hover {
+    scale: 1.1;
+}
+
+/* Show only the top-3 cards on waste pile */
+/*  Since waste-pile can have max of 24 children in this game this is a feasible and managable approach, compared to doing this through javascript*/
+
+.on-waste:nth-last-child(4):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(5):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(6):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(7):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(8):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(9):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(10):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(11):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(12):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(13):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(14):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(15):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(16):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(17):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(18):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(19):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(20):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(21):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(22):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(23):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(24):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(25):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(26):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(27):not(:nth-last-child(-n+3)),
+.on-waste:nth-last-child(28):not(:nth-last-child(-n+3)) {
+    position: fixed;
+    margin-bottom: 0;
+}
+
+.card.large.on-waste:nth-last-child(4):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(5):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(6):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(7):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(8):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(9):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(10):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(11):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(12):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(13):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(14):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(15):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(16):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(17):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(18):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(19):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(20):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(21):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(22):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(23):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(24):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(25):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(26):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(27):not(:nth-last-child(-n+3)):hover,
+.card.large.on-waste:nth-last-child(28):not(:nth-last-child(-n+3)):hover {
+    box-shadow: none;
+    transform: none;
+    translate: 0;
+    scale: 1;
+}
+
+
+.card.large.on-waste:last-child:hover {
+    box-shadow: .25rem .25rem 0.35rem var(--icon-stroke);
+}
+
+
+
+.card.back.deck {
+    margin-bottom: -89.8px;
+}
+
+.card.large.back.deck {
+    /* margin-bottom: -146px; */
+    margin-bottom: calc(-5.5em * 1.025);
+}
+
+.card:nth-child(n) {
+    z-index: calc(100-n);
+}
+
+.card.face-up {
+    z-index: 2;
+}
+
+.header,
+.footer {
+    height: 100px;
+    display: flex;
+    justify-items: flex-start;
+    align-items: center;
+}
+
+#fake-drag {
+    opacity: 0;
+}
+
+.slot .card:not(.back).feedback,
+.card.dragged {
+    border-left: var(--drag-border-size) solid var(--icon-highlight);
+    border-right: var(--drag-border-size) solid var(--icon-highlight);
+}
+
+.slot .card:not(.back).feedback.pile-head,
+.card.dragged.pile-head {
+    border-top: var(--drag-border-size) solid var(--icon-highlight);
+}
+
+.slot .card:not(.back).feedback.pile-end,
+.card.dragged.pile-end {
+    border-bottom: var(--drag-border-size) solid var(--icon-highlight);
+}
+
+.slot .card:not(.back).feedback.valid,
+.card.dragged.valid {
+    border-color: var(--drag-border-valid);
+}
+
+.slot .card:not(.back).feedback.invalid,
+.card.dragged.invalid {
+    border-color: var(--drag-border-invalid);
+    cursor: no-drop;
+}
+
+.slot .card:not(.back) .slot .card:not(.back).feedback:not(.invalid) {
+    scale: 1.1;
+}
+
+.slot.foundation .card.feedback:last-of-type {
+    border-width: var(--drag-border-size);
+}
+
+.slot.feedback.valid:empty {
+    border-color: var(--drag-border-valid);
+}
+
+.slot.feedback.invalid:empty {
+    border-color: var(--drag-border-invalid);
+}
+
+
+
+.card:not(.back).valid {
+    scale: 1.1;
+}
+
+/* .card.dragged:not(.card.dragged.pile-head) {
+    transform: translateX(-10px);
+} */
+
+.header {
+    flex-direction: row-reverse;
+}
+
+.header>div:last-child {
+    margin-right: auto;
+}
+
+.icon {
+    padding: 10px 5px;
+    margin-left: 5px;
+}
+
+.icon:not(.disabled):hover {
+    cursor: pointer;
+}
+
+.icon svg {
+    width: 35px;
+    height: 35px;
+    border: 2px solid var(--icon-stroke);
+    border-radius: 50%;
+    padding: 3px;
+    background: radial-gradient(circle, var(--icon-base) 30%, var(--icon-highlight) 100%);
+}
+
+.icon:hover svg {
+    filter: drop-shadow(.15rem .15rem 0.35rem var(--icon-stroke));
+}
+
+.icon:active svg {
+    filter: none;
+}
+
+.about-icon {
+    stroke: var(--icon-stroke);
+    stroke-width: 1;
+}
+
+.about-icon path {
+    fill: var(--about-icon-fill);
+}
+
+.about-icon:hover path {
+    fill: var(--about-icon-hover-fill);
+}
+
+.about-icon:active path {
+    fill: var(--about-icon-active-fill);
+}
+
+.undo-icon {
+    stroke-width: 20;
+    stroke: var(--icon-stroke);
+}
+
+.undo-icon path {
+    fill: var(--undo-icon-fill);
+}
+
+.undo-icon:hover path {
+    fill: var(--undo-icon-hover-fill);
+}
+
+.undo-icon:active path {
+    fill: var(--undo-icon-active-fill);
+}
+
+.ff-icon {
+    stroke: var(--icon-highlight);
+    fill: var(--icon-stroke);
+}
+
+.ff-icon:hover {
+    stroke: var(--icon-stroke);
+    fill: var(--icon-base);
+}
+
+.ff-icon:active {
+    fill: var(--icon-highlight)
+}
+
+.options-icon {
+    stroke-width: 1;
+    stroke: var(--icon-stroke);
+}
+
+.options-icon path {
+    fill: var(--options-icon-fill);
+}
+
+.options-icon:hover path {
+    fill: var(--options-icon-hover-fill);
+}
+
+.options-icon:active path {
+    fill: var(--options-icon-active-fill);
+}
+
+.fill-inside {
+    fill: var(--icon-base);
+}
+
+.fill-inside-bg {
+    fill: var(--icon-base);
+}
+
+#redo {
+    transform: scaleX(-1);
+    opacity: 0;
+    display: none;
+    transition: opacity 0.1s ease-in-out;
+}
+
+#undo {
+    opacity: 0;
+    display: none;
+    transition: opacity 0.1s ease-in-out;
+}
+
+#undo.show {
+
+    display: inline;
+    transition: opacity 0.1s ease-in-out;
+}
+
+#redo.show {
+
+    display: inline;
+    transition: opacity 0.1s ease-in-out;
+}
+
+#fast-forward {
+    opacity: 0;
+    display: none;
+    transition: opacity 0.1s ease-in-out;
+}
+
+#fast-forward.show {
+    display: inline;
+    transition: opacity 0.1s ease-in-out;
+}
+
+.message-box {
+    display: none;
+    position: absolute;
+    bottom: 10px;
+    color: black;
+    background-image: linear-gradient(to bottom, var(--light-pink-bg), transparent);
+    width: 50%;
+    max-width: 600px;
+    height: 30vh;
+    border-radius: 5vmin;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.message-box.show {
+    display: block;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.popup {
+    z-index: 1500;
+    border-radius: 5vmin;
+    background-color: var(--classic-green-bg);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 20px;
+    overflow: auto;
+    min-width: 70%;
+    min-height: 50vh;
+    color: whitesmoke;
+    border: 2px solid white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.popup a {
+    color: var(--icon-base);
+}
+
+.overlay.show {
+    display: block;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.options-container {
+    display: grid;
+    grid-template-columns: 1fr 3fr;
+    grid-template-rows: auto auto auto;
+}
+
+.visuals {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.visuals * {
+    padding: 5px;
+}
+
+.game {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.game * {
+    padding: 5px;
+}
+
+.audio {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.audio * {
+    padding: 5px;
+}
+
+.hide {
+    display: none;
+}
+
+#about-popup p {
+    font-size: small;
+}
+
+.top-message {
+    color: var(--icon-base);
+}
+
+#score.pulse-it {
+    animation: pulse-size 0.5s ease-in-out alternate infinite;
+}
+
+.winner-score{
+    animation: pulse-size-sm 2s ease-in-out alternate infinite;
+    color: var(--scored-game-color);
+}
+
+.top-message span {
+    font-size: medium;
+    vertical-align: middle;
+    transition: color 0.1s ease-in-out;
+}
+
+.top-message span.score-increased {
+    color: var(--score-increase-color);
+}
+
+.top-message span.score-decreased {
+    color: var(--score-decrease-color);
+}
+
+@keyframes pulse-size-sm {
+    0% {
+        font-size: 1em;
+    }
+
+    50% {
+        font-size: 1.3em;
+    }
+
+    100% {
+        font-size: 1em;
+    }
+}
+
+@keyframes pulse-size {
+    0% {
+        font-size: 1em;
+    }
+
+    50% {
+        font-size: 1.5em;
+    }
+
+    100% {
+        font-size: 1em;
+    }
+}
+
+.red-deck {
+    color: var(--bright-red-color);
+}
+
+.blue-deck {
+    color: var(--electric-blue-color);
+}
+
+.scored-game {
+    color: var(--scored-game-color);
+    font-size: 1.5em;
+}
+
+.unscored-game{
+    color: var(--electric-blue-color);
+    font-size: 1.5em;
+}

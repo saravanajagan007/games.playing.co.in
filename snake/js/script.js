@@ -1,0 +1,360 @@
+let cellsNo = 20;
+let cellSize = 400 / cellsNo;
+let difficulty = 1;
+let score = 0;
+
+const canvas = document.querySelector("canvas");
+const ctx = canvas.getContext("2d");
+
+const btnStart = document.querySelector(".btn-start");
+const btnPause = document.querySelector(".btn-pause");
+const scoreVal = document.querySelector(".score_val");
+const highScoreVal = document.querySelector(".high_score_val");
+
+let direction;
+const DIR = {
+  LEFT: 37,
+  UP: 38,
+  RIGHT: 39,
+  DOWN: 40,
+};
+
+ctx.strokeStyle = "#27373F";
+ctx.fillStyle = "rgb(14, 198, 14)";
+
+let snake = [];
+let food = null;
+let paused = false;
+let needsGrowth = false;
+
+let lastUpdate, lastFood, tick;
+let flash = false;
+let lastKeyPressed;
+
+function getHighScore() {
+  try {
+    const saved = localStorage.getItem("snakeHighScore");
+    return saved ? parseInt(saved, 10) : 0;
+  } catch (e) {
+    return 0;
+  }
+}
+
+function setHighScore(value) {
+  try {
+    localStorage.setItem("snakeHighScore", value);
+  } catch (e) {
+    console.warn("Could not save high score");
+  }
+}
+
+function updateHighScoreDisplay() {
+  highScoreVal.textContent = getHighScore();
+}
+
+function updateHighScoreIfNeeded(currentScore) {
+  const high = getHighScore();
+  if (currentScore > high) {
+    setHighScore(currentScore);
+    updateHighScoreDisplay();
+  }
+}
+
+function update() {
+  tick = Date.now();
+
+  if (hasCollisions()) {
+    flash = true;
+    updateHighScoreIfNeeded(score);
+    return;
+  }
+
+  if (tick - lastUpdate > 500 / difficulty) {
+    if (lastKeyPressed && lastKeyPressed !== direction) {
+      setDirection(lastKeyPressed);
+    }
+    moveSnake();
+    lastUpdate = tick;
+  }
+
+  if (tick - lastFood > foodTreshold()) {
+    putFood();
+  }
+
+  if (headMeetsFood()) {
+    needsGrowth = true;
+    food = null;
+    putFood();
+    setScore(score + difficulty);
+  }
+}
+
+function foodTreshold() {
+  return (5000 / difficulty) * cellsNo;
+}
+
+function hasCollisions() {
+  const head = snake[0];
+  const check = snake.concat([]);
+  check.shift();
+  return check.find((c) => c.x === head.x && c.y === head.y);
+}
+
+function snakeContains(cell) {
+  return snake.find((c) => c.x === cell.x && c.y === cell.y);
+}
+
+function headMeetsFood() {
+  const head = snake[0];
+  return food && head.x === food.x && head.y === food.y;
+}
+
+function moveSnake() {
+  const head = snake[0];
+  const next = Object.assign({}, head);
+
+  switch (direction) {
+    case DIR.LEFT:
+      --next.x;
+      break;
+    case DIR.UP:
+      --next.y;
+      break;
+    case DIR.RIGHT:
+      ++next.x;
+      break;
+    case DIR.DOWN:
+      ++next.y;
+      break;
+  }
+
+  if (next.x >= cellsNo) next.x = 0;
+  if (next.y >= cellsNo) next.y = 0;
+  if (next.x < 0) next.x = cellsNo - 1;
+  if (next.y < 0) next.y = cellsNo - 1;
+
+  if (!needsGrowth) {
+    snake.pop();
+  }
+
+  needsGrowth = false;
+  snake.unshift(next);
+}
+
+function putFood() {
+  do {
+    food = {
+      x: ~~(Math.random() * (cellsNo - 1)),
+      y: ~~(Math.random() * (cellsNo - 1)),
+    };
+  } while (snakeContains(food));
+
+  lastFood = tick;
+}
+
+function draw() {
+  ctx.clearRect(0, 0, 400, 400);
+  drawCells();
+  drawFood();
+  if (flash && ~~(Date.now() / 100) % 2 === 0) {
+    return;
+  }
+  drawSnake();
+}
+
+function drawCells() {
+  for (let i = 0; i < cellsNo; ++i)
+    for (let j = 0; j < cellsNo; ++j)
+      drawCell(i, j);
+}
+
+function drawFood() {
+  if (food) {
+    ctx.fillStyle = "rgb(233, 8, 8)";
+    fillCell(food.x, food.y);
+    ctx.fillStyle = "rgb(14, 198, 14)";
+  }
+}
+
+function drawCell(i, j) {
+  ctx.strokeRect(i * cellSize, j * cellSize, cellSize, cellSize);
+}
+
+function drawSnake() {
+  snake.forEach(({ x, y }) => fillCell(x, y));
+}
+
+function fillCell(x, y) {
+  ctx.beginPath();
+  ctx.rect(x * cellSize, y * cellSize, cellSize, cellSize);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+}
+
+function setScore(next) {
+  score = next;
+  scoreVal.textContent = score;
+}
+
+function startGame() {
+  btnStart.textContent = "restart";
+  flash = false;
+  lastKeyPressed = null;
+  food = null;
+  setScore(0);
+  direction = DIR.LEFT;
+  lastFood = lastUpdate = Date.now();
+  paused = false;
+  updateHighScoreDisplay();
+  setTimeout(putFood, 1000);
+  const startX = cellsNo / 2;
+  snake = [startX, startX + 1, startX + 2, startX + 3].map((x) => ({
+    x,
+    y: 15,
+  }));
+}
+
+function loop() {
+  requestAnimationFrame(loop);
+  draw();
+
+  if (paused) return;
+  update();
+}
+
+updateHighScoreDisplay();
+requestAnimationFrame(loop);
+
+btnStart.addEventListener("click", startGame);
+btnPause.addEventListener("click", pause);
+
+function pause() {
+  paused = !paused;
+  btnPause.textContent = paused ? "resume" : "pause";
+}
+
+window.addEventListener("keydown", onKeyDown);
+function onKeyDown({ keyCode }) {
+  switch (true) {
+    case keyCode === DIR.DOWN && direction === DIR.UP:
+    case keyCode === DIR.UP && direction === DIR.DOWN:
+    case keyCode === DIR.LEFT && direction === DIR.RIGHT:
+    case keyCode === DIR.RIGHT && direction === DIR.LEFT:
+      return;
+  }
+
+  lastKeyPressed = keyCode;
+}
+
+function setDirection(keyCode) {
+  if (
+    (keyCode === DIR.DOWN && direction === DIR.UP) ||
+    (keyCode === DIR.UP && direction === DIR.DOWN) ||
+    (keyCode === DIR.LEFT && direction === DIR.RIGHT) ||
+    (keyCode === DIR.RIGHT && direction === DIR.LEFT)
+  ) {
+    return;
+  }
+  direction = keyCode;
+}
+
+function checkFood() {
+  if (!food) return;
+  if (food.x >= cellsNo) {
+    food.x = cellsNo - 1;
+  }
+  if (food.y >= cellsNo) {
+    food.y = cellsNo - 1;
+  }
+}
+
+class RangeSlider {
+  constructor(el, cb) {
+    this.input = el.querySelector("input");
+    this.slider = el.querySelector(".range_inputSlider");
+    this.value = el.querySelector(".range_inputValue");
+
+    this.input.addEventListener("input", () => this.onChange());
+    this.input.addEventListener("keydown", (e) => {
+      e.preventDefault();
+    });
+
+    this.onChangeCallback = cb;
+    this.onChange();
+  }
+
+  onChange() {
+    this.value.textContent = this.input.value;
+    this.slider.style.transform = `scaleX(${this.input.value / this.input.step / 10})`;
+    this.onChangeCallback(this.input.value);
+  }
+}
+
+new RangeSlider(
+  document.querySelector(".range-difficulty"),
+  (value) => (difficulty = Number(value))
+);
+
+new RangeSlider(document.querySelector(".range-columns"), (value) => {
+  cellsNo = Number(value);
+  cellSize = 400 / cellsNo;
+  checkFood();
+});
+
+let isPointerDown, pointerStart, pointerPos;
+
+function onTouchStart(e) {
+  const { clientX, clientY } = e.touches[0];
+  isPointerDown = true;
+  pointerStart = { x: clientX, y: clientY };
+  pointerPos = Object.assign({}, pointerStart);
+}
+
+function onTouchMove(e) {
+  const { clientX, clientY } = e.touches[0];
+  pointerPos = { x: clientX, y: clientY };
+}
+
+function onTouchEnd() {
+  if (!isPointerDown) return;
+  isPointerDown = false;
+
+  const deltaX = pointerStart.x - pointerPos.x;
+  const deltaY = pointerStart.y - pointerPos.y;
+  const keyCode = touchToKeyCode(deltaX, deltaY);
+
+  if (keyCode) onKeyDown({ keyCode });
+}
+
+function touchToKeyCode(x, y) {
+  let keyCode;
+  if (Math.abs(x) > Math.abs(y)) {
+    if (x < -1) {
+      keyCode = DIR.RIGHT;
+    } else if (x > 1) {
+      keyCode = DIR.LEFT;
+    }
+  } else {
+    if (y < -1) {
+      keyCode = DIR.DOWN;
+    } else if (y > 1) {
+      keyCode = DIR.UP;
+    }
+  }
+  return keyCode;
+}
+
+canvas.addEventListener("touchstart", onTouchStart);
+window.addEventListener("touchmove", onTouchMove);
+window.addEventListener("touchend", onTouchEnd);
+
+const btnUp = document.querySelector(".btn-up");
+const btnDown = document.querySelector(".btn-down");
+const btnLeft = document.querySelector(".btn-left");
+const btnRight = document.querySelector(".btn-right");
+
+btnUp.addEventListener("click", () => setDirection(DIR.UP));
+btnDown.addEventListener("click", () => setDirection(DIR.DOWN));
+btnLeft.addEventListener("click", () => setDirection(DIR.LEFT));
+btnRight.addEventListener("click", () => setDirection(DIR.RIGHT));
