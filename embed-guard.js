@@ -1,40 +1,33 @@
 /**
- * Playing.co.in Frame Enforcer
- * Bounces unauthorized direct visitors to playing.co.in
- * Allows authenticated administrators with cf_games_auth cookie
+ * Playing.co.in Frame Enforcer & Admin Protection Gate
+ * Allows iframe playback on playing.co.in
+ * Protects direct access with password check; redirects wrong attempts to playing.co.in
  */
 (function() {
-  if (document.cookie.indexOf("cf_games_auth=") !== -1) {
+  // 1. Allow normal playback inside Playing.co.in iframe
+  if (window.top !== window.self) {
+    return;
+  }
+
+  // 2. Check if already authenticated
+  var MASTER_PASS = "Goldwinner007#";
+  var AUTH_KEY = "cf_admin_edge_auth";
+
+  if (
+    localStorage.getItem(AUTH_KEY) === MASTER_PASS ||
+    document.cookie.indexOf("cf_games_auth=authenticated") !== -1
+  ) {
     return; // Authorized administrator
   }
 
-  if (window.top === window.self) {
-    var p = window.location.pathname.replace(/^\/|\/$/g, '');
-    var map = {
-      '': 'https://playing.co.in',
-      '2048': '2048-classic',
-      'hextris': 'hextris',
-      'clumsy-bird': 'clumsy-bird',
-      'pacman': 'pacman-canvas',
-      'sudoku': 'sudoku-master',
-      'chess': 'chess-2d-engine',
-      'snake': 'classic-snake',
-      'asteroids': 'asteroids-reloaded',
-      'breakout': 'breakout-dx',
-      'solitaire': 'klondike-solitaire',
-      'minesweeper': 'minesweeper-classic',
-      'space-invaders': 'space-invaders',
-      'tetris': 'tetris-blocks',
-      'connect-four': 'connect-four',
-      'pong': 'pong-classic'
-    };
-    var target = map[p];
-    if (target) {
-      if (target.indexOf('http') === 0) {
-        window.location.replace(target);
-      } else {
-        window.location.replace('https://playing.co.in/game/' + target);
-      }
-    }
+  // 3. Direct access password challenge
+  var entered = prompt("Playing.co.in Edge CDN - Restricted Access.\nPlease enter Admin Password:");
+  if (entered === MASTER_PASS) {
+    localStorage.setItem(AUTH_KEY, MASTER_PASS);
+    document.cookie = "cf_games_auth=authenticated; path=/; max-age=2592000; secure";
+    return; // Access granted
+  } else {
+    // Wrong password or cancelled -> Redirect immediately to playing.co.in
+    window.location.replace("https://playing.co.in");
   }
 })();
