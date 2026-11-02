@@ -1,8 +1,13 @@
 /**
  * Playing.co.in Frame Enforcer
- * Prevents standalone execution outside of Playing.co.in portal iframe.
+ * Bounces unauthorized direct visitors to playing.co.in
+ * Allows authenticated administrators with cf_games_auth cookie
  */
 (function() {
+  if (document.cookie.indexOf("cf_games_auth=") !== -1) {
+    return; // Authorized administrator
+  }
+
   if (window.top === window.self) {
     var p = window.location.pathname.replace(/^\/|\/$/g, '');
     var map = {
