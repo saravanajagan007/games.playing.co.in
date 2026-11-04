@@ -73,7 +73,7 @@ export async function onRequest(context) {
 
   // If inside an iframe on playing.co.in
   const isIframe = secFetchDest === 'iframe';
-  if (isAllowedReferer && (isIframe || secFetchDest === '')) {
+  if (isAllowedReferer && (isIframe || secFetchDest === '' || secFetchDest === 'empty')) {
     return context.next();
   }
 
@@ -86,9 +86,11 @@ export async function onRequest(context) {
   const segments = pathname.split('/').filter(Boolean);
   const gameKey = segments[0] || '';
 
-  if (gameKey && CANONICAL_GAME_MAP[gameKey]) {
-    // Immediate HTTP 302 Redirect at Edge
-    return Response.redirect(CANONICAL_GAME_MAP[gameKey], 302);
+  if (gameKey) {
+    if (CANONICAL_GAME_MAP[gameKey]) {
+      return Response.redirect(CANONICAL_GAME_MAP[gameKey], 302);
+    }
+    return Response.redirect(`https://playing.co.in/game/${gameKey}`, 302);
   }
 
   // 5. Default direct access redirect to playing.co.in home
