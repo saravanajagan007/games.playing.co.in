@@ -32,6 +32,9 @@ function update() {
   if (ball.x < 10 || ball.x > 330) ball.vx = -ball.vx;
   if (ball.y < 30) ball.vy = -ball.vy;
   if (ball.y > 380 && Math.abs(ball.x - rx) < 35) ball.vy = -ball.vy;
+  if (ball.y > 420) {
+    ball = { x: 170, y: 180, vx: (Math.random() > 0.5 ? 2.5 : -2.5), vy: 3.5 };
+  }
 
   draw();
   requestAnimationFrame(update);

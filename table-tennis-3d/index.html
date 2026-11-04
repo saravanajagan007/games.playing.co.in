@@ -41,7 +41,7 @@ function update() {
   }
 
   if (ball.y > 420) {
-    alert("Missed! Final rally: " + rally);
+    // Reset rally seamlessly without modal pause
     ball = { x: 170, y: 210, vx: 2, vy: 4 };
     rally = 0;
     document.getElementById('rally').innerText = rally;
