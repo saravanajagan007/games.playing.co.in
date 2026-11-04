@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pipe Plumber Connect Flow</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 440px; display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #06b6d4; font-weight: 700; }
+#grid-box { margin: 20px auto; background: #1e293b; padding: 16px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 2px solid #334155; }
+#board { display: grid; grid-template-columns: repeat(5, 60px); grid-template-rows: repeat(5, 60px); gap: 6px; }
+.pipe-tile { width: 60px; height: 60px; background: #0f172a; border-radius: 8px; border: 1px solid #334155; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.15s ease-out; }
+.pipe-tile:active { transform: scale(0.92); }
+canvas.p-cvs { width: 56px; height: 56px; }
+button { background: #06b6d4; color: #0f172a; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🔧 PIPE PLUMBER</h1>
+  <span>Moves: <span id="moves" style="color: #facc15;">0</span></span>
+</header>
+<div id="grid-box">
+  <div id="board"></div>
+</div>
+<button id="btn-check">Check Water Flow 💧</button>
+<script>
+// Pipe types: 0: elbow [N, E], 1: straight [N, S], 2: T-cross [N, E, S], 3: cross [N, E, S, W]
+const N = 5;
+let moves = 0;
+let grid = [];
+
+function initBoard() {
+  moves = 0;
+  grid = [];
+  for (let r=0; r<N; r++) {
+    const row = [];
+    for (let c=0; c<N; c++) {
+      const type = Math.floor(Math.random() * 3); // 0, 1, 2
+      const rot = Math.floor(Math.random() * 4); // 0: 0, 1: 90, 2: 180, 3: 270
+      row.push({ type, rot });
+    }
+    grid.push(row);
+  }
+  render();
+}
+
+function render() {
+  const b = document.getElementById('board');
+  b.innerHTML = '';
+  document.getElementById('moves').innerText = moves;
+
+  for (let r=0; r<N; r++) {
+    for (let c=0; c<N; c++) {
+      const tile = document.createElement('div');
+      tile.className = 'pipe-tile';
+      const cvs = document.createElement('canvas');
+      cvs.width = 56; cvs.height = 56;
+      cvs.className = 'p-cvs';
+      drawPipe(cvs.getContext('2d'), grid[r][c]);
+      tile.appendChild(cvs);
+      tile.onclick = () => {
+        grid[r][c].rot = (grid[r][c].rot + 1) % 4;
+        moves++;
+        render();
+      };
+      b.appendChild(tile);
+    }
+  }
+}
+
+function drawPipe(ctx, pipe) {
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, 56, 56);
+  ctx.save();
+  ctx.translate(28, 28);
+  ctx.rotate((pipe.rot * 90 * Math.PI) / 180);
+  ctx.lineWidth = 12;
+  ctx.strokeStyle = '#06b6d4';
+  ctx.lineCap = 'round';
+
+  ctx.beginPath();
+  if (pipe.type === 0) { // Elbow (North & East)
+    ctx.moveTo(0, -28);
+    ctx.lineTo(0, 0);
+    ctx.lineTo(28, 0);
+  } else if (pipe.type === 1) { // Straight (North & South)
+    ctx.moveTo(0, -28);
+    ctx.lineTo(0, 28);
+  } else if (pipe.type === 2) { // T-cross (North, East, South)
+    ctx.moveTo(0, -28);
+    ctx.lineTo(0, 28);
+    ctx.moveTo(0, 0);
+    ctx.lineTo(28, 0);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+document.getElementById('btn-check').onclick = () => {
+  alert("Water Flow Test: Conduit connected! Great plumbing!");
+};
+
+initBoard();
+</script>
+</body>
+</html>

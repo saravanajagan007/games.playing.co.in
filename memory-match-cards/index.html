@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Memory Match Flip Cards</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 440px; display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #60a5fa; font-weight: 700; }
+#card-grid { display: grid; grid-template-columns: repeat(4, 75px); grid-template-rows: repeat(4, 75px); gap: 10px; margin: 20px auto; }
+.card { width: 75px; height: 75px; background: #1e293b; border: 2px solid #3b82f6; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 2rem; transition: transform 0.25s; }
+.card.flipped { background: #0284c7; border-color: #38bdf8; transform: rotateY(180deg); }
+.card.matched { background: #10b981; border-color: #34d399; cursor: default; }
+button { background: #3b82f6; color: white; border: none; padding: 8px 18px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🃏 MEMORY MATCH</h1>
+  <span>Flips: <span id="flips" style="color: #facc15;">0</span></span>
+</header>
+<div id="card-grid"></div>
+<button id="btn-restart">Restart Deck</button>
+<script>
+const SYMBOLS = ["🦁", "🚀", "🍕", "🎸", "🏆", "🌟", "🚗", "💎"];
+let cards = [];
+let flipped = [];
+let matches = 0;
+let flips = 0;
+let lock = false;
+
+function init() {
+  const deck = [...SYMBOLS, ...SYMBOLS].sort(() => Math.random() - 0.5);
+  cards = deck.map((sym, id) => ({ id, sym, matched: false }));
+  flipped = [];
+  matches = 0;
+  flips = 0;
+  lock = false;
+  document.getElementById('flips').innerText = flips;
+  render();
+}
+
+function render() {
+  const g = document.getElementById('card-grid');
+  g.innerHTML = '';
+  cards.forEach((c, idx) => {
+    const el = document.createElement('div');
+    el.className = 'card';
+    const isFlipped = flipped.includes(idx) || c.matched;
+    if (isFlipped) el.classList.add('flipped');
+    if (c.matched) el.classList.add('matched');
+    el.innerText = isFlipped ? c.sym : '❓';
+    el.onclick = () => onCardClick(idx);
+    g.appendChild(el);
+  });
+}
+
+function onCardClick(idx) {
+  if (lock || flipped.includes(idx) || cards[idx].matched) return;
+  flipped.push(idx);
+  flips++;
+  document.getElementById('flips').innerText = flips;
+  render();
+
+  if (flipped.length === 2) {
+    lock = true;
+    const [i1, i2] = flipped;
+    if (cards[i1].sym === cards[i2].sym) {
+      cards[i1].matched = true;
+      cards[i2].matched = true;
+      matches++;
+      flipped = [];
+      lock = false;
+      render();
+      if (matches === 8) {
+        setTimeout(() => alert("Victory! Completed in " + flips + " flips!"), 200);
+      }
+    } else {
+      setTimeout(() => {
+        flipped = [];
+        lock = false;
+        render();
+      }, 700);
+    }
+  }
+}
+
+document.getElementById('btn-restart').onclick = init;
+init();
+</script>
+</body>
+</html>

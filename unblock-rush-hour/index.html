@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Rush Hour Car Slide Escape</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 440px; display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #ef4444; font-weight: 700; }
+#lot-wrap { position: relative; width: 360px; height: 360px; background: #1e293b; border-radius: 12px; margin: 20px auto; border: 4px solid #334155; }
+#exit-gate { position: absolute; right: -8px; top: 120px; width: 8px; height: 60px; background: #22c55e; border-radius: 0 4px 4px 0; }
+.vehicle { position: absolute; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; cursor: grab; box-shadow: 0 4px 8px rgba(0,0,0,0.4); touch-action: none; }
+.vehicle:active { cursor: grabbing; filter: brightness(1.15); }
+button { background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🚗 RUSH HOUR ESCAPE</h1>
+  <span>Moves: <span id="moves" style="color: #facc15;">0</span></span>
+</header>
+<div id="lot-wrap">
+  <div id="exit-gate"></div>
+  <div id="vehicles"></div>
+</div>
+<button id="btn-reset">Reset Traffic</button>
+<script>
+const CELL = 60;
+let moves = 0;
+// Default puzzle layout
+let initialVehicles = [
+  { id: 0, x: 1, y: 2, len: 2, dir: 'h', color: '#ef4444', isHero: true }, // Red hero car
+  { id: 1, x: 0, y: 0, len: 2, dir: 'h', color: '#3b82f6' },
+  { id: 2, x: 0, y: 1, len: 3, dir: 'v', color: '#eab308' },
+  { id: 3, x: 3, y: 1, len: 3, dir: 'v', color: '#10b981' },
+  { id: 4, x: 4, y: 0, len: 2, dir: 'v', color: '#a855f7' },
+  { id: 5, x: 2, y: 4, len: 2, dir: 'h', color: '#f97316' },
+  { id: 6, x: 4, y: 3, len: 2, dir: 'h', color: '#06b6d4' }
+];
+
+let vehicles = JSON.parse(JSON.stringify(initialVehicles));
+
+function render() {
+  const container = document.getElementById('vehicles');
+  container.innerHTML = '';
+  document.getElementById('moves').innerText = moves;
+
+  vehicles.forEach(v => {
+    const el = document.createElement('div');
+    el.className = 'vehicle';
+    el.style.background = v.color;
+    el.style.left = (v.x * CELL) + 'px';
+    el.style.top = (v.y * CELL) + 'px';
+    el.style.width = (v.dir === 'h' ? v.len * CELL - 4 : CELL - 4) + 'px';
+    el.style.height = (v.dir === 'v' ? v.len * CELL - 4 : CELL - 4) + 'px';
+    el.innerText = v.isHero ? '★ ESC' : '';
+    makeDraggable(el, v);
+    container.appendChild(el);
+  });
+}
+
+function getGridOccupancy(ignoreId) {
+  const occ = Array(6).fill(null).map(() => Array(6).fill(null));
+  vehicles.forEach(v => {
+    if (v.id === ignoreId) return;
+    for (let i=0; i<v.len; i++) {
+      const rx = v.dir === 'h' ? v.x + i : v.x;
+      const ry = v.dir === 'v' ? v.y + i : v.y;
+      if (rx < 6 && ry < 6) occ[ry][rx] = v.id;
+    }
+  });
+  return occ;
+}
+
+function makeDraggable(el, v) {
+  let startTouchX = 0, startTouchY = 0, origPos = 0;
+  
+  const startDrag = (clientX, clientY) => {
+    startTouchX = clientX;
+    startTouchY = clientY;
+    origPos = v.dir === 'h' ? v.x : v.y;
+  };
+
+  const moveDrag = (clientX, clientY) => {
+    const occ = getGridOccupancy(v.id);
+    if (v.dir === 'h') {
+      const diff = Math.round((clientX - startTouchX) / CELL);
+      const targetX = Math.max(0, Math.min(6 - v.len, origPos + diff));
+      // Verify path is clear
+      let clear = true;
+      const step = targetX > v.x ? 1 : -1;
+      for (let cur = v.x + step; step > 0 ? cur <= targetX : cur >= targetX; cur += step) {
+        for (let i=0; i<v.len; i++) {
+          if (occ[v.y][cur + i] !== null) clear = false;
+        }
+      }
+      if (clear && targetX !== v.x) {
+        v.x = targetX;
+        moves++;
+        render();
+        if (v.isHero && v.x === 4) {
+          setTimeout(() => alert("Freedom! You escaped the parking lot in " + moves + " moves!"), 150);
+        }
+      }
+    } else {
+      const diff = Math.round((clientY - startTouchY) / CELL);
+      const targetY = Math.max(0, Math.min(6 - v.len, origPos + diff));
+      let clear = true;
+      const step = targetY > v.y ? 1 : -1;
+      for (let cur = v.y + step; step > 0 ? cur <= targetY : cur >= targetY; cur += step) {
+        for (let i=0; i<v.len; i++) {
+          if (occ[cur + i][v.x] !== null) clear = false;
+        }
+      }
+      if (clear && targetY !== v.y) {
+        v.y = targetY;
+        moves++;
+        render();
+      }
+    }
+  };
+
+  el.addEventListener('mousedown', e => {
+    startDrag(e.clientX, e.clientY);
+    const onMove = ev => moveDrag(ev.clientX, ev.clientY);
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  });
+
+  el.addEventListener('touchstart', e => {
+    startDrag(e.touches[0].clientX, e.touches[0].clientY);
+  });
+  el.addEventListener('touchmove', e => {
+    moveDrag(e.touches[0].clientX, e.touches[0].clientY);
+  });
+}
+
+document.getElementById('btn-reset').onclick = function() {
+  vehicles = JSON.parse(JSON.stringify(initialVehicles));
+  moves = 0;
+  render();
+};
+
+render();
+</script>
+</body>
+</html>

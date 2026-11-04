@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Block Collapse Blast Cubes</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 440px; display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #fb7185; font-weight: 700; }
+#board { display: grid; grid-template-columns: repeat(8, 42px); grid-template-rows: repeat(8, 42px); gap: 4px; margin: 20px auto; background: #111827; padding: 10px; border-radius: 12px; }
+.cube { width: 42px; height: 42px; border-radius: 6px; cursor: pointer; transition: transform 0.1s; }
+.cube:active { transform: scale(0.9); }
+button { background: #f43f5e; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>💥 BLOCK COLLAPSE</h1>
+  <span>Score: <span id="score" style="color: #facc15;">0</span></span>
+</header>
+<div id="board"></div>
+<button id="btn-new">New Board</button>
+<script>
+const COLORS = ["#ef4444", "#3b82f6", "#22c55e", "#eab308", "#a855f7"];
+const R = 8, C = 8;
+let board = [];
+let score = 0;
+
+function init() {
+  score = 0;
+  document.getElementById('score').innerText = score;
+  board = [];
+  for (let r=0; r<R; r++) {
+    const row = [];
+    for (let c=0; c<C; c++) {
+      row.push(COLORS[Math.floor(Math.random() * COLORS.length)]);
+    }
+    board.push(row);
+  }
+  render();
+}
+
+function render() {
+  const b = document.getElementById('board');
+  b.innerHTML = '';
+  document.getElementById('score').innerText = score;
+
+  for (let r=0; r<R; r++) {
+    for (let c=0; c<C; c++) {
+      const cube = document.createElement('div');
+      cube.className = 'cube';
+      cube.style.background = board[r][c] || 'transparent';
+      if (board[r][c]) cube.onclick = () => popCluster(r, c);
+      b.appendChild(cube);
+    }
+  }
+}
+
+function popCluster(sr, sc) {
+  const targetCol = board[sr][sc];
+  if (!targetCol) return;
+  const connected = [];
+  const visited = Array(R).fill(null).map(() => Array(C).fill(false));
+
+  function dfs(r, c) {
+    if (r<0 || r>=R || c<0 || c>=C || visited[r][c] || board[r][c] !== targetCol) return;
+    visited[r][c] = true;
+    connected.push({ r, c });
+    dfs(r+1, c); dfs(r-1, c); dfs(r, c+1); dfs(r, c-1);
+  }
+  dfs(sr, sc);
+
+  if (connected.length >= 2) {
+    connected.forEach(p => { board[p.r][p.c] = null; });
+    score += connected.length * connected.length * 5;
+    applyGravity();
+    render();
+  }
+}
+
+function applyGravity() {
+  for (let c=0; c<C; c++) {
+    let writeRow = R - 1;
+    for (let r = R - 1; r >= 0; r--) {
+      if (board[r][c] !== null) {
+        board[writeRow][c] = board[r][c];
+        if (writeRow !== r) board[r][c] = null;
+        writeRow--;
+      }
+    }
+  }
+}
+
+document.getElementById('btn-new').onclick = init;
+init();
+</script>
+</body>
+</html>

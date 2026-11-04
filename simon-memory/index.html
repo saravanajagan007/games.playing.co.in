@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Simon Memory Sequence</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 440px; display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #facc15; font-weight: 700; }
+#simon-circle { position: relative; width: 300px; height: 300px; border-radius: 50%; background: #111827; margin: 24px auto; box-shadow: 0 10px 30px rgba(0,0,0,0.6); display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 8px; padding: 8px; }
+.pad { border-radius: 12px; cursor: pointer; transition: all 0.15s; opacity: 0.7; }
+.pad.active { opacity: 1; filter: brightness(1.6); box-shadow: 0 0 25px currentColor; }
+#pad-0 { background: #22c55e; border-top-left-radius: 140px; color: #22c55e; }
+#pad-1 { background: #ef4444; border-top-right-radius: 140px; color: #ef4444; }
+#pad-2 { background: #eab308; border-bottom-left-radius: 140px; color: #eab308; }
+#pad-3 { background: #3b82f6; border-bottom-right-radius: 140px; color: #3b82f6; }
+#center-circle { position: absolute; width: 100px; height: 100px; border-radius: 50%; background: #1e293b; top: 100px; left: 100px; border: 4px solid #334155; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 700; }
+button { background: #facc15; color: #0f172a; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 10px; font-size: 1rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🔔 SIMON MEMORY</h1>
+  <span>Score: <span id="score" style="color: #38bdf8;">0</span></span>
+</header>
+<div id="simon-circle">
+  <div class="pad" id="pad-0"></div>
+  <div class="pad" id="pad-1"></div>
+  <div class="pad" id="pad-2"></div>
+  <div class="pad" id="pad-3"></div>
+  <div id="center-circle">
+    <span style="font-size: 0.8rem; color: #94a3b8;">STEP</span>
+    <span id="step-txt" style="font-size: 1.4rem; color: #facc15;">--</span>
+  </div>
+</div>
+<button id="btn-start">Start Game</button>
+<script>
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const FREQS = [329.63, 261.63, 220, 164.81];
+
+function playTone(idx, dur=0.3) {
+  try {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = 'triangle';
+    o.frequency.value = FREQS[idx];
+    g.gain.setValueAtTime(0.12, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + dur);
+  } catch(e) {}
+}
+
+let seq = [];
+let userSeq = [];
+let isPlaying = false;
+
+function flashPad(idx, dur=300) {
+  const el = document.getElementById(`pad-${idx}`);
+  el.classList.add('active');
+  playTone(idx, dur/1000);
+  setTimeout(() => el.classList.remove('active'), dur);
+}
+
+function nextRound() {
+  userSeq = [];
+  seq.push(Math.floor(Math.random() * 4));
+  document.getElementById('step-txt').innerText = seq.length;
+  document.getElementById('score').innerText = seq.length - 1;
+  isPlaying = false;
+  
+  let delay = 600;
+  seq.forEach((pad, i) => {
+    setTimeout(() => flashPad(pad, 350), delay * (i + 1));
+  });
+  setTimeout(() => { isPlaying = true; }, delay * (seq.length + 1));
+}
+
+function padClick(idx) {
+  if (!isPlaying) return;
+  flashPad(idx, 200);
+  userSeq.push(idx);
+  const curStep = userSeq.length - 1;
+
+  if (userSeq[curStep] !== seq[curStep]) {
+    isPlaying = false;
+    document.getElementById('step-txt').innerText = "XX";
+    setTimeout(() => alert("Game Over! Final streak: " + (seq.length - 1)), 250);
+    return;
+  }
+
+  if (userSeq.length === seq.length) {
+    isPlaying = false;
+    setTimeout(nextRound, 800);
+  }
+}
+
+for (let i=0; i<4; i++) {
+  document.getElementById(`pad-${i}`).onclick = () => padClick(i);
+}
+
+document.getElementById('btn-start').onclick = function() {
+  seq = [];
+  nextRound();
+};
+</script>
+</body>
+</html>

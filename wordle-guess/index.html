@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Word Guess Daily</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 100vh; padding: 12px 8px; }
+header { width: 100%; max-width: 480px; text-align: center; padding-bottom: 8px; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.4rem; color: #22c55e; letter-spacing: 2px; }
+#grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 6px; margin: 12px 0; }
+.row { display: grid; grid-template-columns: repeat(5, 52px); gap: 6px; }
+.cell { width: 52px; height: 52px; border: 2px solid #334155; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 700; text-transform: uppercase; background: #1e293b; }
+.cell.pop { transform: scale(1.1); transition: transform 0.1s; }
+.cell.correct { background: #22c55e; border-color: #22c55e; }
+.cell.present { background: #eab308; border-color: #eab308; }
+.cell.absent { background: #475569; border-color: #475569; }
+#keyboard { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 6px; }
+.kb-row { display: flex; justify-content: center; gap: 4px; }
+.key { height: 48px; min-width: 32px; padding: 0 8px; border-radius: 4px; background: #334155; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; cursor: pointer; text-transform: uppercase; }
+.key.wide { min-width: 54px; font-size: 0.85rem; background: #475569; }
+.key.correct { background: #22c55e; }
+.key.present { background: #eab308; }
+.key.absent { background: #1e293b; color: #64748b; }
+</style>
+</head>
+<body>
+<header>
+  <h1>WORD GUESS DAILY</h1>
+</header>
+<div id="grid"></div>
+<div id="keyboard"></div>
+<script>
+const WORDS = ["PLANT", "BRAIN", "CLOUD", "SMART", "FLASH", "GAMES", "LIGHT", "STONE", "WATER", "CROWN", "DREAM", "PIXEL", "SPACE", "TRACK", "TIGER", "HONEY", "MUSIC", "RIVER", "BEACH", "CHESS"];
+let secret = WORDS[Math.floor(Math.random() * WORDS.length)];
+let curRow = 0;
+let curCol = 0;
+let guesses = Array(6).fill("");
+let isOver = false;
+
+const gridEl = document.getElementById('grid');
+for (let r=0; r<6; r++) {
+  const rowEl = document.createElement('div');
+  rowEl.className = 'row';
+  for (let c=0; c<5; c++) {
+    const cellEl = document.createElement('div');
+    cellEl.className = 'cell';
+    cellEl.id = `cell-${r}-${c}`;
+    rowEl.appendChild(cellEl);
+  }
+  gridEl.appendChild(rowEl);
+}
+
+const KEYS = [
+  ["Q","W","E","R","T","Y","U","I","O","P"],
+  ["A","S","D","F","G","H","J","K","L"],
+  ["ENTER","Z","X","C","V","B","N","M","⌫"]
+];
+
+const kbEl = document.getElementById('keyboard');
+KEYS.forEach(row => {
+  const rEl = document.createElement('div');
+  rEl.className = 'kb-row';
+  row.forEach(k => {
+    const kBtn = document.createElement('div');
+    kBtn.className = 'key' + (k.length > 1 ? ' wide' : '');
+    kBtn.innerText = k;
+    kBtn.id = `key-${k}`;
+    kBtn.onclick = () => handleKey(k);
+    rEl.appendChild(kBtn);
+  });
+  kbEl.appendChild(rEl);
+});
+
+function handleKey(k) {
+  if (isOver) return;
+  if (k === 'ENTER') {
+    submitGuess();
+  } else if (k === '⌫' || k === 'BACKSPACE') {
+    if (curCol > 0) {
+      curCol--;
+      guesses[curRow] = guesses[curRow].slice(0, -1);
+      const cell = document.getElementById(`cell-${curRow}-${curCol}`);
+      cell.innerText = "";
+    }
+  } else if (/^[A-Z]$/.test(k)) {
+    if (curCol < 5) {
+      guesses[curRow] += k;
+      const cell = document.getElementById(`cell-${curRow}-${curCol}`);
+      cell.innerText = k;
+      cell.classList.add('pop');
+      setTimeout(() => cell.classList.remove('pop'), 100);
+      curCol++;
+    }
+  }
+}
+
+function submitGuess() {
+  if (curCol < 5) {
+    alert("Word must have 5 letters!");
+    return;
+  }
+  const guess = guesses[curRow];
+  const secretArr = secret.split('');
+  const guessArr = guess.split('');
+
+  for (let i=0; i<5; i++) {
+    const cell = document.getElementById(`cell-${curRow}-${i}`);
+    const key = document.getElementById(`key-${guessArr[i]}`);
+    if (guessArr[i] === secretArr[i]) {
+      cell.classList.add('correct');
+      if (key) { key.className = 'key correct'; }
+      secretArr[i] = null;
+    }
+  }
+
+  for (let i=0; i<5; i++) {
+    const cell = document.getElementById(`cell-${curRow}-${i}`);
+    if (cell.classList.contains('correct')) continue;
+    const key = document.getElementById(`key-${guessArr[i]}`);
+    const matchIdx = secretArr.indexOf(guessArr[i]);
+    if (matchIdx !== -1) {
+      cell.classList.add('present');
+      if (key && !key.classList.contains('correct')) key.className = 'key present';
+      secretArr[matchIdx] = null;
+    } else {
+      cell.classList.add('absent');
+      if (key && !key.classList.contains('correct') && !key.classList.contains('present')) key.className = 'key absent';
+    }
+  }
+
+  if (guess === secret) {
+    isOver = true;
+    setTimeout(() => alert("Splendid! You guessed the word: " + secret), 200);
+    return;
+  }
+
+  curRow++;
+  curCol = 0;
+  if (curRow === 6) {
+    isOver = true;
+    setTimeout(() => alert("Game Over! The word was: " + secret), 200);
+  }
+}
+
+window.addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleKey('ENTER');
+  else if (e.key === 'Backspace') handleKey('⌫');
+  else if (/^[a-zA-Z]$/.test(e.key)) handleKey(e.key.toUpperCase());
+});
+</script>
+</body>
+</html>

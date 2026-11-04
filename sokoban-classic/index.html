@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sokoban Warehouse Master</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+#game-header { width: 100%; max-width: 500px; display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.1rem; font-weight: 700; color: #38bdf8; }
+.stats { display: flex; gap: 12px; font-size: 0.9rem; font-weight: 600; }
+.stat-val { color: #facc15; }
+#canvas-wrap { position: relative; display: flex; align-items: center; justify-content: center; margin: 10px 0; }
+canvas { background: #111827; border: 2px solid #3b82f6; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+#controls-bar { width: 100%; max-width: 500px; display: flex; justify-content: space-around; padding: 8px 16px; gap: 8px; }
+button { background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+button:hover { background: #2563eb; }
+#dpad { display: grid; grid-template-columns: repeat(3, 56px); grid-template-rows: repeat(3, 52px); gap: 6px; margin-top: 6px; }
+.d-btn { background: #334155; color: #f8fafc; font-size: 1.3rem; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid #475569; }
+.d-btn:active { background: #3b82f6; }
+</style>
+</head>
+<body>
+<div id="game-header">
+  <h1>📦 Sokoban Master</h1>
+  <div class="stats">
+    <span>Level: <span id="lvl-txt" class="stat-val">1</span></span>
+    <span>Moves: <span id="moves-txt" class="stat-val">0</span></span>
+    <span>Pushes: <span id="pushes-txt" class="stat-val">0</span></span>
+  </div>
+</div>
+<div id="canvas-wrap">
+  <canvas id="c" width="400" height="400"></canvas>
+</div>
+<div id="controls-bar">
+  <button id="btn-undo">↺ Undo</button>
+  <button id="btn-restart">↻ Restart</button>
+  <button id="btn-next">Next Level ➔</button>
+</div>
+<div id="dpad">
+  <div></div><button class="d-btn" id="d-up">▲</button><div></div>
+  <button class="d-btn" id="d-left">◀</button><button class="d-btn" id="d-down">▼</button><button class="d-btn" id="d-right">▶</button>
+  <div></div><div></div><div></div>
+</div>
+<script>
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playTone(f, t=0.08, type='sine') {
+  try {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type; o.frequency.value = f;
+    g.gain.setValueAtTime(0.08, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + t);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + t);
+  } catch(e) {}
+}
+
+const levels = [
+  [
+    "  ##### ",
+    "###   # ",
+    "# $ # ##",
+    "# #  . #",
+    "#    # #",
+    "## #.  #",
+    " #@$ ###",
+    " #####  "
+  ],
+  [
+    "######  ",
+    "#   .#  ",
+    "# $#.#  ",
+    "# $@ #  ",
+    "# $#.#  ",
+    "#   .#  ",
+    "######  "
+  ],
+  [
+    "  ##### ",
+    "###   # ",
+    "#   $ # ",
+    "### $ # ",
+    "#.### # ",
+    "#.# $ # ",
+    "#.   @# ",
+    "####### "
+  ]
+];
+
+let curLvl = 0;
+let grid = [];
+let px = 0, py = 0;
+let history = [];
+let moves = 0, pushes = 0;
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const TILE = 45;
+
+function loadLevel(idx) {
+  curLvl = idx % levels.length;
+  const raw = levels[curLvl];
+  grid = raw.map(r => r.split(''));
+  history = [];
+  moves = 0; pushes = 0;
+  for (let r=0; r<grid.length; r++) {
+    for (let c=0; c<grid[r].length; c++) {
+      if (grid[r][c] === '@') { px = c; py = r; grid[r][c] = ' '; }
+      if (grid[r][c] === '+') { px = c; py = r; grid[r][c] = '.'; }
+    }
+  }
+  document.getElementById('lvl-txt').innerText = curLvl + 1;
+  updateStats();
+  draw();
+}
+
+function updateStats() {
+  document.getElementById('moves-txt').innerText = moves;
+  document.getElementById('pushes-txt').innerText = pushes;
+}
+
+function move(dx, dy) {
+  const nx = px + dx, ny = py + dy;
+  if (!grid[ny] || grid[ny][nx] === '#') return;
+  
+  const target = grid[ny][nx];
+  let pushed = false;
+  if (target === '$' || target === '*') {
+    const nnx = nx + dx, nny = ny + dy;
+    if (!grid[nny] || grid[nny][nnx] === '#' || grid[nny][nnx] === '$' || grid[nny][nnx] === '*') return;
+    history.push({ px, py, moves, pushes, grid: grid.map(r => [...r]) });
+    grid[nny][nnx] = grid[nny][nnx] === '.' ? '*' : '$';
+    grid[ny][nx] = target === '*' ? '.' : ' ';
+    pushes++;
+    pushed = true;
+    playTone(280, 0.1, 'triangle');
+  } else {
+    history.push({ px, py, moves, pushes, grid: grid.map(r => [...r]) });
+    playTone(420, 0.05);
+  }
+  px = nx; py = ny; moves++;
+  updateStats();
+  draw();
+  checkWin();
+}
+
+function checkWin() {
+  let remaining = 0;
+  for (let r=0; r<grid.length; r++) {
+    for (let c=0; c<grid[r].length; c++) {
+      if (grid[r][c] === '$') remaining++;
+    }
+  }
+  if (remaining === 0) {
+    playTone(523, 0.1); setTimeout(() => playTone(659, 0.1), 100); setTimeout(() => playTone(784, 0.25), 200);
+    setTimeout(() => {
+      alert("Level Cleared! Excellent job!");
+      loadLevel(curLvl + 1);
+    }, 250);
+  }
+}
+
+function undo() {
+  if (history.length === 0) return;
+  const prev = history.pop();
+  px = prev.px; py = prev.py;
+  moves = prev.moves; pushes = prev.pushes;
+  grid = prev.grid;
+  updateStats();
+  draw();
+  playTone(200, 0.06);
+}
+
+function draw() {
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const rows = grid.length;
+  const cols = Math.max(...grid.map(r => r.length));
+  const offX = Math.floor((canvas.width - cols * TILE) / 2);
+  const offY = Math.floor((canvas.height - rows * TILE) / 2);
+
+  for (let r=0; r<rows; r++) {
+    for (let c=0; c<grid[r].length; c++) {
+      const char = grid[r][c];
+      const x = offX + c * TILE;
+      const y = offY + r * TILE;
+      
+      if (char === '#') {
+        ctx.fillStyle = '#475569';
+        ctx.fillRect(x, y, TILE, TILE);
+        ctx.strokeStyle = '#64748b';
+        ctx.strokeRect(x+2, y+2, TILE-4, TILE-4);
+      } else {
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(x, y, TILE, TILE);
+        if (char === '.' || char === '*') {
+          ctx.fillStyle = '#ef4444';
+          ctx.beginPath();
+          ctx.arc(x + TILE/2, y + TILE/2, 6, 0, Math.PI*2);
+          ctx.fill();
+        }
+      }
+
+      if (char === '$' || char === '*') {
+        ctx.fillStyle = char === '*' ? '#10b981' : '#f59e0b';
+        ctx.fillRect(x+6, y+6, TILE-12, TILE-12);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x+6, y+6, TILE-12, TILE-12);
+        ctx.fillStyle = '#fff';
+        ctx.font = '14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(char === '*' ? '✓' : '📦', x + TILE/2, y + TILE/2);
+      }
+    }
+  }
+
+  // Draw Player
+  const playerX = offX + px * TILE + TILE/2;
+  const playerY = offY + py * TILE + TILE/2;
+  ctx.fillStyle = '#38bdf8';
+  ctx.beginPath();
+  ctx.arc(playerX, playerY, 14, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = '#0f172a';
+  ctx.beginPath();
+  ctx.arc(playerX-4, playerY-3, 3, 0, Math.PI*2);
+  ctx.arc(playerX+4, playerY-3, 3, 0, Math.PI*2);
+  ctx.fill();
+}
+
+window.addEventListener('keydown', e => {
+  if (['ArrowUp','KeyW'].includes(e.code)) move(0, -1);
+  if (['ArrowDown','KeyS'].includes(e.code)) move(0, 1);
+  if (['ArrowLeft','KeyA'].includes(e.code)) move(-1, 0);
+  if (['ArrowRight','KeyD'].includes(e.code)) move(1, 0);
+  if (e.code === 'KeyU') undo();
+  if (e.code === 'KeyR') loadLevel(curLvl);
+});
+
+document.getElementById('btn-undo').onclick = undo;
+document.getElementById('btn-restart').onclick = () => loadLevel(curLvl);
+document.getElementById('btn-next').onclick = () => loadLevel(curLvl + 1);
+document.getElementById('d-up').onclick = () => move(0, -1);
+document.getElementById('d-down').onclick = () => move(0, 1);
+document.getElementById('d-left').onclick = () => move(-1, 0);
+document.getElementById('d-right').onclick = () => move(1, 0);
+
+loadLevel(0);
+</script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Math Crossword Equations</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 440px; display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #2dd4bf; font-weight: 700; }
+#grid-box { margin: 20px auto; background: #1e293b; padding: 14px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+.m-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.m-cell { width: 50px; height: 50px; border-radius: 8px; background: #0f172a; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 700; border: 2px solid #334155; }
+.m-cell.empty { border-color: #2dd4bf; cursor: pointer; color: #facc15; }
+.m-cell.selected { background: #134e4a; border-color: #5eead4; }
+.m-cell.op { background: transparent; border: none; color: #94a3b8; }
+#keypad { display: flex; gap: 6px; margin-top: 10px; }
+.num-btn { width: 44px; height: 44px; background: #334155; color: white; border-radius: 6px; border: 1px solid #475569; font-size: 1.2rem; font-weight: 700; cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>➗ MATH CROSSWORD</h1>
+  <span>Status: <span id="st" style="color: #facc15;">Solve Grid</span></span>
+</header>
+<div id="grid-box">
+  <!-- Row 1: [a] + [b] = 12 -->
+  <div class="m-row">
+    <div class="m-cell empty" id="c-0-0"></div>
+    <div class="m-cell op">+</div>
+    <div class="m-cell empty" id="c-0-1"></div>
+    <div class="m-cell op">=</div>
+    <div class="m-cell op" style="color:#2dd4bf;">12</div>
+  </div>
+  <!-- Row 2: +     +  -->
+  <div class="m-row">
+    <div class="m-cell op">+</div>
+    <div class="m-cell op"></div>
+    <div class="m-cell op">+</div>
+  </div>
+  <!-- Row 3: [c] + [d] = 8 -->
+  <div class="m-row">
+    <div class="m-cell empty" id="c-1-0"></div>
+    <div class="m-cell op">+</div>
+    <div class="m-cell empty" id="c-1-1"></div>
+    <div class="m-cell op">=</div>
+    <div class="m-cell op" style="color:#2dd4bf;">8</div>
+  </div>
+  <!-- Row 4: =     =  -->
+  <div class="m-row">
+    <div class="m-cell op">=</div>
+    <div class="m-cell op"></div>
+    <div class="m-cell op">=</div>
+  </div>
+  <!-- Row 5: 11    9  -->
+  <div class="m-row">
+    <div class="m-cell op" style="color:#2dd4bf;">11</div>
+    <div class="m-cell op"></div>
+    <div class="m-cell op" style="color:#2dd4bf;">9</div>
+  </div>
+</div>
+<div id="keypad"></div>
+<script>
+let selectedCell = null;
+const values = { "0-0": null, "0-1": null, "1-0": null, "1-1": null };
+
+// Populate keypad 1-9
+const kp = document.getElementById('keypad');
+for (let i=1; i<=9; i++) {
+  const b = document.createElement('button');
+  b.className = 'num-btn';
+  b.innerText = i;
+  b.onclick = () => setDigit(i);
+  kp.appendChild(b);
+}
+
+document.querySelectorAll('.m-cell.empty').forEach(el => {
+  el.onclick = () => {
+    document.querySelectorAll('.m-cell.empty').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedCell = el.id.replace('c-', '');
+  };
+});
+
+function setDigit(d) {
+  if (!selectedCell) return;
+  values[selectedCell] = d;
+  document.getElementById('c-' + selectedCell).innerText = d;
+  checkSolution();
+}
+
+function checkSolution() {
+  const { "0-0": a, "0-1": b, "1-0": c, "1-1": d } = values;
+  if (a && b && c && d) {
+    if (a + b === 12 && c + d === 8 && a + c === 11 && b + d === 9) {
+      document.getElementById('st').innerText = "Solved!";
+      setTimeout(() => alert("Equations balanced! Excellent math mind!"), 150);
+    }
+  }
+}
+</script>
+</body>
+</html>

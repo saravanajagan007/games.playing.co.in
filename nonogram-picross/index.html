@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Nonogram Picross Japanese Grid</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+#header { width: 100%; max-width: 440px; display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.1rem; color: #2dd4bf; }
+#board-wrap { margin: 18px auto; background: #1e293b; padding: 14px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+table { border-collapse: collapse; }
+td, th { width: 34px; height: 34px; text-align: center; vertical-align: middle; font-size: 0.85rem; font-weight: 700; border: 1px solid #334155; }
+th { color: #94a3b8; background: #0f172a; font-family: monospace; }
+td.cell { background: #0f172a; cursor: pointer; transition: background 0.15s; }
+td.filled { background: #0ea5e9; }
+td.crossed { color: #ef4444; font-size: 1.2rem; }
+#toolbar { display: flex; gap: 10px; margin-top: 10px; }
+button { background: #334155; color: white; border: 1px solid #475569; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+button.active { background: #0ea5e9; border-color: #38bdf8; }
+</style>
+</head>
+<body>
+<div id="header">
+  <h1>🔢 Nonogram Picross</h1>
+  <span id="puzzle-title" style="color: #facc15; font-weight: 600;">Heart</span>
+</div>
+<div id="board-wrap">
+  <table id="grid"></table>
+</div>
+<div id="toolbar">
+  <button id="mode-fill" class="active">⬛ Fill Mode</button>
+  <button id="mode-cross">❌ Mark X</button>
+  <button id="btn-next">Next Puzzle ➔</button>
+</div>
+<script>
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function beep(f) {
+  try {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.frequency.value = f;
+    g.gain.setValueAtTime(0.08, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + 0.08);
+  } catch(e) {}
+}
+
+const puzzles = [
+  {
+    name: "Heart",
+    map: [
+      [0,1,0,1,0],
+      [1,1,1,1,1],
+      [1,1,1,1,1],
+      [0,1,1,1,0],
+      [0,0,1,0,0]
+    ]
+  },
+  {
+    name: "Cup",
+    map: [
+      [1,1,1,1,0],
+      [1,0,0,1,1],
+      [1,0,0,1,0],
+      [1,1,1,1,0],
+      [0,1,1,0,0]
+    ]
+  },
+  {
+    name: "Anchor",
+    map: [
+      [0,0,1,0,0],
+      [1,0,1,0,1],
+      [1,1,1,1,1],
+      [0,0,1,0,0],
+      [0,1,1,1,0]
+    ]
+  }
+];
+
+let curIdx = 0;
+let mode = 'fill';
+let playerMap = [];
+
+function getHints(arr) {
+  const hints = [];
+  let count = 0;
+  for (let v of arr) {
+    if (v === 1) count++;
+    else if (count > 0) { hints.push(count); count = 0; }
+  }
+  if (count > 0) hints.push(count);
+  return hints.length ? hints : [0];
+}
+
+function loadPuzzle(idx) {
+  curIdx = idx % puzzles.length;
+  const p = puzzles[curIdx];
+  document.getElementById('puzzle-title').innerText = p.name;
+  const N = p.map.length;
+  playerMap = Array(N).fill(null).map(() => Array(N).fill(0)); // 0: empty, 1: filled, 2: cross
+
+  const rowHints = p.map.map(r => getHints(r));
+  const colHints = [];
+  for (let c=0; c<N; c++) {
+    const col = p.map.map(r => r[c]);
+    colHints.push(getHints(col));
+  }
+
+  const table = document.getElementById('grid');
+  table.innerHTML = '';
+
+  // Top header row with col hints
+  const topTr = document.createElement('tr');
+  topTr.appendChild(document.createElement('th')); // corner
+  for (let c=0; c<N; c++) {
+    const th = document.createElement('th');
+    th.innerHTML = colHints[c].join('<br>');
+    topTr.appendChild(th);
+  }
+  table.appendChild(topTr);
+
+  for (let r=0; r<N; r++) {
+    const tr = document.createElement('tr');
+    const th = document.createElement('th');
+    th.innerText = rowHints[r].join(' ');
+    tr.appendChild(th);
+
+    for (let c=0; c<N; c++) {
+      const td = document.createElement('td');
+      td.className = 'cell';
+      td.onclick = () => onCellClick(r, c, td);
+      td.oncontextmenu = (e) => { e.preventDefault(); onCellRightClick(r, c, td); };
+      tr.appendChild(td);
+    }
+    table.appendChild(tr);
+  }
+}
+
+function onCellClick(r, c, td) {
+  if (mode === 'fill') {
+    playerMap[r][c] = playerMap[r][c] === 1 ? 0 : 1;
+  } else {
+    playerMap[r][c] = playerMap[r][c] === 2 ? 0 : 2;
+  }
+  beep(400);
+  updateTd(r, c, td);
+  checkWin();
+}
+
+function onCellRightClick(r, c, td) {
+  playerMap[r][c] = playerMap[r][c] === 2 ? 0 : 2;
+  beep(300);
+  updateTd(r, c, td);
+  checkWin();
+}
+
+function updateTd(r, c, td) {
+  td.className = 'cell';
+  td.innerText = '';
+  if (playerMap[r][c] === 1) td.classList.add('filled');
+  else if (playerMap[r][c] === 2) {
+    td.classList.add('crossed');
+    td.innerText = '✕';
+  }
+}
+
+function checkWin() {
+  const p = puzzles[curIdx];
+  const N = p.map.length;
+  for (let r=0; r<N; r++) {
+    for (let c=0; c<N; c++) {
+      const correct = p.map[r][c] === 1;
+      const filled = playerMap[r][c] === 1;
+      if (correct !== filled) return;
+    }
+  }
+  beep(600); setTimeout(() => beep(800), 120);
+  setTimeout(() => alert("Masterpiece Uncovered! Correct Picross solution!"), 250);
+}
+
+document.getElementById('mode-fill').onclick = function() {
+  mode = 'fill';
+  this.classList.add('active');
+  document.getElementById('mode-cross').classList.remove('active');
+};
+document.getElementById('mode-cross').onclick = function() {
+  mode = 'cross';
+  this.classList.add('active');
+  document.getElementById('mode-fill').classList.remove('active');
+};
+document.getElementById('btn-next').onclick = () => loadPuzzle(curIdx + 1);
+
+loadPuzzle(0);
+</script>
+</body>
+</html>
