@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/embed-guard.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Flappy Bird Retro Arcade</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body { background: #0c1222; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; font-family: monospace; }
+    #canvas { background: #70c5ce; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-radius: 12px; max-width: 95vw; max-height: 85vh; }
+    .hint { margin-top: 10px; color: #94a3b8; font-size: 13px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="400" height="560"></canvas>
+  <div class="hint">Space / Click / Tap to Flap</div>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function beep(f, t, d) {
+      try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
+        g.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + d);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(); o.stop(audioCtx.currentTime + d);
+      } catch(e) {}
+    }
+    let state = 'START', score = 0, hi = parseInt(localStorage.getItem('flappy_hi')||'0', 10), fr = 0;
+    const bird = {
+      x: 90, y: 260, r: 14, vy: 0, g: 0.38, flapF: -6.8,
+      reset() { this.y = 260; this.vy = 0; },
+      flap() { this.vy = this.flapF; beep(520, 'triangle', 0.1); },
+      update() { this.vy += this.g; this.y += this.vy; },
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        let rot = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, this.vy * 0.08));
+        ctx.rotate(rot);
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath(); ctx.arc(0, 0, this.r, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#f97316';
+        ctx.beginPath(); ctx.arc(8, 2, 7, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(4, -5, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath(); ctx.arc(6, -5, 2.5, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
+    };
+    let pipes = [], pipeTimer = 0;
+    function spawnPipe() {
+      const gap = 125;
+      const topH = Math.floor(Math.random() * (canvas.height - 240)) + 50;
+      pipes.push({ x: canvas.width + 10, topH: topH, bottomY: topH + gap, w: 56, scored: false });
+    }
+    function restart() { score = 0; pipes = []; pipeTimer = 0; bird.reset(); state = 'PLAY'; }
+    function loop() {
+      fr++;
+      ctx.fillStyle = '#70c5ce'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Clouds
+      ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      ctx.beginPath(); ctx.arc(80, 80, 30, 0, Math.PI*2); ctx.arc(110, 75, 40, 0, Math.PI*2); ctx.arc(140, 80, 30, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(280, 140, 30, 0, Math.PI*2); ctx.arc(310, 135, 38, 0, Math.PI*2); ctx.arc(340, 140, 30, 0, Math.PI*2); ctx.fill();
+      // Ground
+      ctx.fillStyle = '#ded895'; ctx.fillRect(0, canvas.height - 60, canvas.width, 60);
+      ctx.fillStyle = '#73bf2e'; ctx.fillRect(0, canvas.height - 60, canvas.width, 12);
+
+      if (state === 'PLAY') {
+        bird.update();
+        pipeTimer++;
+        if (pipeTimer % 95 === 0) spawnPipe();
+        for (let i = pipes.length - 1; i >= 0; i--) {
+          const p = pipes[i]; p.x -= 2.4;
+          // Draw pipes
+          ctx.fillStyle = '#22c55e';
+          ctx.fillRect(p.x, 0, p.w, p.topH);
+          ctx.fillRect(p.x, p.bottomY, p.w, canvas.height - p.bottomY - 60);
+          ctx.fillStyle = '#15803d';
+          ctx.fillRect(p.x - 3, p.topH - 20, p.w + 6, 20);
+          ctx.fillRect(p.x - 3, p.bottomY, p.w + 6, 20);
+          // Collision
+          if (bird.x + bird.r > p.x && bird.x - bird.r < p.x + p.w) {
+            if (bird.y - bird.r < p.topH || bird.y + bird.r > p.bottomY) {
+              state = 'OVER'; beep(180, 'sawtooth', 0.35);
+            }
+          }
+          if (!p.scored && p.x + p.w < bird.x) {
+            p.scored = true; score++; beep(780, 'sine', 0.1);
+            if (score > hi) { hi = score; localStorage.setItem('flappy_hi', hi); }
+          }
+          if (p.x + p.w < -20) pipes.splice(i, 1);
+        }
+        if (bird.y + bird.r >= canvas.height - 60 || bird.y - bird.r <= 0) {
+          state = 'OVER'; beep(180, 'sawtooth', 0.35);
+        }
+      }
+      bird.draw();
+      // Score
+      ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#000000'; ctx.lineWidth = 4;
+      ctx.font = 'bold 36px monospace'; ctx.textAlign = 'center';
+      ctx.strokeText(score, canvas.width / 2, 60);
+      ctx.fillText(score, canvas.width / 2, 60);
+
+      if (state === 'START') {
+        ctx.fillStyle = '#ffffff'; ctx.strokeText('TAP TO FLAP', canvas.width / 2, canvas.height / 2 - 20);
+        ctx.fillText('TAP TO FLAP', canvas.width / 2, canvas.height / 2 - 20);
+      } else if (state === 'OVER') {
+        ctx.fillStyle = '#ef4444'; ctx.strokeText('GAME OVER', canvas.width / 2, canvas.height / 2 - 40);
+        ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 40);
+        ctx.font = 'bold 20px monospace'; ctx.fillStyle = '#ffffff';
+        ctx.strokeText('BEST: ' + hi, canvas.width / 2, canvas.height / 2 + 5);
+        ctx.fillText('BEST: ' + hi, canvas.width / 2, canvas.height / 2 + 5);
+        ctx.font = '15px monospace';
+        ctx.fillText('Tap to Restart', canvas.width / 2, canvas.height / 2 + 45);
+      }
+      requestAnimationFrame(loop);
+    }
+    function act() { if (state === 'START' || state === 'OVER') restart(); else if (state === 'PLAY') bird.flap(); }
+    window.addEventListener('keydown', e => { if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); act(); } });
+    canvas.addEventListener('touchstart', e => { e.preventDefault(); act(); });
+    canvas.addEventListener('mousedown', act);
+    loop();
+  </script>
+</body>
+</html>

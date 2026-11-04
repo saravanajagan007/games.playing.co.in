@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/embed-guard.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Centipede Retro Arcade</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body { background: #0f172a; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; font-family: monospace; color: #fff; }
+    #canvas { background: #020617; box-shadow: 0 10px 40px rgba(0,0,0,0.8); border: 2px solid #3b82f6; border-radius: 12px; max-width: 95vw; max-height: 85vh; }
+    .hint { margin-top: 10px; color: #94a3b8; font-size: 13px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="600" height="450"></canvas>
+  <div class="hint">Arrow Keys / Tap to Play • High Performance First-Party Arcade</div>
+  <script>
+    const canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d');
+    
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function beep(f, t, d, v=0.1) {
+      try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
+        g.gain.setValueAtTime(v, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + d);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(); o.stop(audioCtx.currentTime + d);
+      } catch(e) {}
+    }
+    
+    let score = 0, hi = 0, state = 'PLAY', fr = 0;
+    let player = { x: canvas.width / 2, y: canvas.height - 50, w: 40, h: 20, vx: 0 };
+    let balls = [{ x: 300, y: 200, vx: 3.5, vy: -4, r: 8 }];
+    let targets = [];
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 8; c++) {
+        targets.push({ x: 50 + c * 65, y: 40 + r * 30, w: 55, h: 20, hit: false, col: `hsl(${(c * 40 + r * 20)}, 80%, 55%)` });
+      }
+    }
+    function update() {
+      if (state === 'PLAY') {
+        player.x = Math.max(player.w/2, Math.min(canvas.width - player.w/2, player.x + player.vx));
+        balls.forEach(b => {
+          b.x += b.vx; b.y += b.vy;
+          if (b.x - b.r < 0 || b.x + b.r > canvas.width) { b.vx *= -1; beep(380, 'square', 0.05); }
+          if (b.y - b.r < 0) { b.vy *= -1; beep(380, 'square', 0.05); }
+          // Paddle collision
+          if (b.y + b.r >= player.y && b.y - b.r <= player.y + player.h && b.x >= player.x - player.w/2 && b.x <= player.x + player.w/2) {
+            b.vy = -Math.abs(b.vy);
+            b.vx += (b.x - player.x) * 0.1;
+            beep(520, 'triangle', 0.08);
+          }
+          // Targets
+          targets.forEach(t => {
+            if (!t.hit && b.x > t.x && b.x < t.x + t.w && b.y > t.y && b.y < t.y + t.h) {
+              t.hit = true; b.vy *= -1; score += 50; beep(750, 'sine', 0.1);
+            }
+          });
+          if (b.y > canvas.height) state = 'OVER';
+        });
+      }
+    }
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      targets.forEach(t => {
+        if (!t.hit) {
+          ctx.fillStyle = t.col; ctx.fillRect(t.x, t.y, t.w, t.h);
+        }
+      });
+      // Paddle
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(player.x - player.w/2, player.y, player.w, player.h);
+      // Ball
+      balls.forEach(b => {
+        ctx.fillStyle = '#facc15'; ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI*2); ctx.fill();
+      });
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 16px monospace'; ctx.fillText('SCORE: ' + score, 20, 25);
+      if (state === 'OVER') {
+        ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle = '#ef4444'; ctx.font = 'bold 30px monospace'; ctx.textAlign = 'center';
+        ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2 - 10);
+        ctx.font = '15px monospace'; ctx.fillStyle = '#cbd5e1';
+        ctx.fillText('Tap or Click to Restart', canvas.width/2, canvas.height/2 + 25);
+      }
+    }
+    function loop() { update(); draw(); requestAnimationFrame(loop); }
+    window.addEventListener('keydown', e => {
+      if (e.code === 'ArrowLeft' || e.code === 'KeyA') player.vx = -6;
+      else if (e.code === 'ArrowRight' || e.code === 'KeyD') player.vx = 6;
+      else if (e.code === 'Space' && state === 'OVER') {
+        score = 0; targets.forEach(t => t.hit = false);
+        balls = [{ x: 300, y: 200, vx: 3.5, vy: -4, r: 8 }]; state = 'PLAY';
+      }
+    });
+    window.addEventListener('keyup', e => { player.vx = 0; });
+    canvas.addEventListener('mousemove', e => {
+      let rect = canvas.getBoundingClientRect();
+      player.x = (e.clientX - rect.left);
+    });
+    canvas.addEventListener('touchmove', e => {
+      let rect = canvas.getBoundingClientRect();
+      player.x = (e.touches[0].clientX - rect.left);
+    });
+    canvas.addEventListener('mousedown', () => {
+      if (state === 'OVER') { score = 0; targets.forEach(t => t.hit = false); balls = [{ x: 300, y: 200, vx: 3.5, vy: -4, r: 8 }]; state = 'PLAY'; }
+    });
+    loop();
+  </script>
+</body>
+</html>

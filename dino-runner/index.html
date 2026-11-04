@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/embed-guard.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Chrome T-Rex Dino Runner</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body { background: #0f172a; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; font-family: monospace; color: #fff; }
+    #canvas { background: #ffffff; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-radius: 12px; max-width: 95vw; max-height: 80vh; }
+    .hint { margin-top: 12px; color: #94a3b8; font-size: 14px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="800" height="300"></canvas>
+  <div class="hint">Space / Up / Tap: Jump • Down: Duck</div>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function beep(f, t, d) {
+      try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
+        g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + d);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(); o.stop(audioCtx.currentTime + d);
+      } catch(e) {}
+    }
+    let state = 'START', score = 0, hi = parseInt(localStorage.getItem('dino_hi')||'0', 10), spd = 6, gy = 240, fr = 0;
+    const dino = {
+      x: 60, y: gy - 44, w: 40, h: 44, vy: 0, g: 0.75, jf: -13.5, onG: true, ducking: false,
+      reset() { this.y = gy - 44; this.w = 40; this.h = 44; this.vy = 0; this.onG = true; this.ducking = false; },
+      jump() { if (this.onG) { this.vy = this.jf; this.onG = false; beep(460, 'square', 0.1); } },
+      duck(d) { if (this.onG) { this.ducking = d; this.h = d ? 26 : 44; this.w = d ? 54 : 40; this.y = gy - this.h; } },
+      update() {
+        if (!this.onG) { this.vy += this.g; this.y += this.vy; if (this.y >= gy - this.h) { this.y = gy - this.h; this.vy = 0; this.onG = true; } }
+      },
+      draw() {
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(this.x, this.y, this.w, this.h);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(this.x + this.w - 12, this.y + 6, 4, 4);
+        if (this.onG) {
+          ctx.fillStyle = '#334155';
+          let leg = (Math.floor(fr / 5) % 2 === 0);
+          ctx.fillRect(this.x + (leg ? 8 : 24), this.y + this.h, 8, 6);
+        }
+      }
+    };
+    let obs = [], timer = 0;
+    function spawn() {
+      const type = Math.random() > 0.35 ? 'c' : 'b';
+      if (type === 'c') {
+        const count = Math.random() > 0.6 ? 2 : 1;
+        obs.push({ x: canvas.width + 10, y: gy - 40, w: count * 20, h: 40, type: 'c' });
+      } else {
+        const y = Math.random() > 0.5 ? gy - 36 : gy - 65;
+        obs.push({ x: canvas.width + 10, y: y, w: 38, h: 22, type: 'b' });
+      }
+    }
+    function restart() { score = 0; spd = 6; obs = []; timer = 40; dino.reset(); state = 'PLAY'; }
+    function collide(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
+    function loop() {
+      fr++;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(canvas.width, gy); ctx.stroke();
+      if (state === 'PLAY') {
+        score++;
+        if (score % 100 === 0) { beep(880, 'sine', 0.15); spd += 0.25; }
+        if (score > hi) { hi = score; localStorage.setItem('dino_hi', hi); }
+        timer--;
+        if (timer <= 0) { spawn(); timer = Math.floor(Math.random() * 50 + 55) - Math.min(spd * 2, 35); }
+        dino.update();
+        for (let i = obs.length - 1; i >= 0; i--) {
+          const o = obs[i]; o.x -= spd;
+          ctx.fillStyle = (o.type === 'c') ? '#16a34a' : '#ea580c';
+          ctx.fillRect(o.x, o.y, o.w, o.h);
+          if (collide(dino, o)) { state = 'OVER'; beep(160, 'sawtooth', 0.3); }
+          if (o.x + o.w < 0) obs.splice(i, 1);
+        }
+      }
+      dino.draw();
+      ctx.fillStyle = '#475569'; ctx.font = 'bold 18px monospace'; ctx.textAlign = 'right';
+      ctx.fillText('HI ' + String(hi).padStart(5, '0') + '  ' + String(score).padStart(5, '0'), canvas.width - 25, 35);
+      if (state === 'START') {
+        ctx.textAlign = 'center'; ctx.font = 'bold 24px monospace'; ctx.fillStyle = '#1e293b';
+        ctx.fillText('PRESS SPACE OR TAP TO JUMP', canvas.width / 2, canvas.height / 2 - 10);
+      } else if (state === 'OVER') {
+        ctx.textAlign = 'center'; ctx.font = 'bold 28px monospace'; ctx.fillStyle = '#dc2626';
+        ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 15);
+        ctx.font = '16px monospace'; ctx.fillStyle = '#475569';
+        ctx.fillText('Press Space or Tap to Restart', canvas.width / 2, canvas.height / 2 + 20);
+      }
+      requestAnimationFrame(loop);
+    }
+    function act() { if (state === 'START' || state === 'OVER') restart(); else if (state === 'PLAY') dino.jump(); }
+    window.addEventListener('keydown', e => {
+      if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); act(); }
+      else if (e.code === 'ArrowDown') { e.preventDefault(); dino.duck(true); }
+    });
+    window.addEventListener('keyup', e => { if (e.code === 'ArrowDown') dino.duck(false); });
+    canvas.addEventListener('touchstart', e => { e.preventDefault(); act(); });
+    canvas.addEventListener('mousedown', act);
+    loop();
+  </script>
+</body>
+</html>

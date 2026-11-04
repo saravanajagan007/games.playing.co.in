@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/embed-guard.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Apollo Lunar Lander Sim</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body { background: #000000; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; font-family: monospace; color: #fff; }
+    #canvas { background: #020617; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border: 1px solid #1e293b; border-radius: 12px; max-width: 95vw; max-height: 85vh; }
+    .hint { margin-top: 10px; color: #94a3b8; font-size: 13px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="600" height="420"></canvas>
+  <div class="hint">Up Arrow / Tap: Main Thruster • Left / Right: Rotate Lander</div>
+  <script>
+    const canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d');
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function beep(f, t, d) {
+      try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
+        g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + d);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(); o.stop(audioCtx.currentTime + d);
+      } catch(e) {}
+    }
+    let lander = { x: 300, y: 50, vx: 0.8, vy: 0, angle: 0, fuel: 500, thrust: false, rotL: false, rotR: false };
+    let state = 'PLAY', score = 0, pad = { x: 260, y: 380, w: 90 };
+    function reset() {
+      lander = { x: Math.random() * 200 + 100, y: 50, vx: (Math.random() - 0.5) * 1.5, vy: 0, angle: 0, fuel: 500, thrust: false, rotL: false, rotR: false };
+      state = 'PLAY';
+    }
+    function update() {
+      if (state === 'PLAY') {
+        if (lander.rotL) lander.angle -= 0.05;
+        if (lander.rotR) lander.angle += 0.05;
+        lander.vy += 0.035; // Moon gravity
+        if (lander.thrust && lander.fuel > 0) {
+          lander.vx += Math.sin(lander.angle) * 0.09;
+          lander.vy -= Math.cos(lander.angle) * 0.09;
+          lander.fuel = Math.max(0, lander.fuel - 1.5);
+          if (Math.random() > 0.4) beep(100 + Math.random() * 50, 'sawtooth', 0.05);
+        }
+        lander.x += lander.vx; lander.y += lander.vy;
+        // Surface check
+        if (lander.y >= pad.y - 10) {
+          let gentle = Math.abs(lander.vy) < 1.4 && Math.abs(lander.vx) < 1.0;
+          let upright = Math.abs(lander.angle) < 0.25;
+          let onPad = lander.x >= pad.x && lander.x <= pad.x + pad.w;
+          if (gentle && upright && onPad) {
+            state = 'LANDED'; score += 500 + Math.floor(lander.fuel);
+            beep(660, 'sine', 0.3);
+          } else {
+            state = 'CRASH'; beep(90, 'sawtooth', 0.4);
+          }
+        }
+      }
+    }
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Stars
+      ctx.fillStyle = '#ffffff';
+      for (let i = 0; i < 40; i++) ctx.fillRect((i * 47) % canvas.width, (i * 31) % 300, 1.5, 1.5);
+      // Surface
+      ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, 390); ctx.lineTo(pad.x, pad.y);
+      ctx.lineTo(pad.x + pad.w, pad.y); ctx.lineTo(canvas.width, 395);
+      ctx.stroke();
+      // Pad
+      ctx.fillStyle = '#22c55e'; ctx.fillRect(pad.x, pad.y - 2, pad.w, 4);
+      // Lander
+      ctx.save();
+      ctx.translate(lander.x, lander.y);
+      ctx.rotate(lander.angle);
+      ctx.fillStyle = '#e2e8f0'; ctx.fillRect(-10, -10, 20, 16);
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+      ctx.strokeRect(-10, -10, 20, 16);
+      // Legs
+      ctx.beginPath(); ctx.moveTo(-10, 6); ctx.lineTo(-16, 16); ctx.moveTo(10, 6); ctx.lineTo(16, 16); ctx.stroke();
+      if (lander.thrust && lander.fuel > 0) {
+        ctx.fillStyle = '#f97316';
+        ctx.beginPath(); ctx.moveTo(-5, 6); ctx.lineTo(5, 6); ctx.lineTo(0, 18 + Math.random() * 8); ctx.fill();
+      }
+      ctx.restore();
+
+      // Telemetry HUD
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 13px monospace'; ctx.textAlign = 'left';
+      ctx.fillText('SCORE: ' + score + '  FUEL: ' + Math.floor(lander.fuel), 15, 25);
+      ctx.fillText('VERT SPEED: ' + lander.vy.toFixed(1) + ' (LIMIT 1.4)', 15, 45);
+      ctx.fillText('HORIZ SPEED: ' + lander.vx.toFixed(1) + ' (LIMIT 1.0)', 15, 65);
+
+      if (state === 'LANDED') {
+        ctx.fillStyle = '#22c55e'; ctx.font = 'bold 26px monospace'; ctx.textAlign = 'center';
+        ctx.fillText('THE EAGLE HAS LANDED!', canvas.width / 2, canvas.height / 2);
+        ctx.font = '15px monospace'; ctx.fillStyle = '#cbd5e1';
+        ctx.fillText('Press Space / Tap to Next Mission', canvas.width / 2, canvas.height / 2 + 35);
+      } else if (state === 'CRASH') {
+        ctx.fillStyle = '#ef4444'; ctx.font = 'bold 26px monospace'; ctx.textAlign = 'center';
+        ctx.fillText('CRITICAL IMPACT DESTROYED', canvas.width / 2, canvas.height / 2);
+        ctx.font = '15px monospace'; ctx.fillStyle = '#cbd5e1';
+        ctx.fillText('Press Space / Tap to Retry', canvas.width / 2, canvas.height / 2 + 35);
+      }
+    }
+    function loop() { update(); draw(); requestAnimationFrame(loop); }
+    window.addEventListener('keydown', e => {
+      if (e.code === 'ArrowUp' || e.code === 'KeyW') { e.preventDefault(); lander.thrust = true; }
+      if (e.code === 'ArrowLeft' || e.code === 'KeyA') { e.preventDefault(); lander.rotL = true; }
+      if (e.code === 'ArrowRight' || e.code === 'KeyD') { e.preventDefault(); lander.rotR = true; }
+      if (e.code === 'Space' && (state === 'LANDED' || state === 'CRASH')) reset();
+    });
+    window.addEventListener('keyup', e => {
+      if (e.code === 'ArrowUp' || e.code === 'KeyW') lander.thrust = false;
+      if (e.code === 'ArrowLeft' || e.code === 'KeyA') lander.rotL = false;
+      if (e.code === 'ArrowRight' || e.code === 'KeyD') lander.rotR = false;
+    });
+    canvas.addEventListener('touchstart', e => {
+      e.preventDefault();
+      if (state !== 'PLAY') { reset(); return; }
+      let tx = e.touches[0].clientX;
+      if (tx < window.innerWidth * 0.3) lander.rotL = true;
+      else if (tx > window.innerWidth * 0.7) lander.rotR = true;
+      else lander.thrust = true;
+    });
+    canvas.addEventListener('touchend', e => {
+      e.preventDefault();
+      lander.thrust = false; lander.rotL = false; lander.rotR = false;
+    });
+    loop();
+  </script>
+</body>
+</html>

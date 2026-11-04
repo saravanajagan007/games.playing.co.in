@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/embed-guard.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Missile Defense Commander</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body { background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; font-family: monospace; color: #fff; }
+    #canvas { background: #020617; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-radius: 12px; max-width: 95vw; max-height: 85vh; cursor: crosshair; }
+    .hint { margin-top: 10px; color: #94a3b8; font-size: 13px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="600" height="420"></canvas>
+  <div class="hint">Click or Tap to Launch Anti-Air Defensive Flak Explosions</div>
+  <script>
+    const canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d');
+    
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function beep(f, t, d, v=0.1) {
+      try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
+        g.gain.setValueAtTime(v, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + d);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(); o.stop(audioCtx.currentTime + d);
+      } catch(e) {}
+    }
+    
+    let missiles = [], flaks = [], cities = [80, 160, 240, 360, 440, 520], score = 0, ammo = 30, state = 'PLAY';
+    function spawnMissile() {
+      missiles.push({
+        sx: Math.random() * canvas.width, sy: 0,
+        tx: cities[Math.floor(Math.random() * cities.length)] || Math.random() * canvas.width,
+        ty: 390, progress: 0, spd: Math.random() * 0.003 + 0.002
+      });
+    }
+    function explode(x, y) {
+      if (ammo <= 0) return;
+      ammo--; beep(240, 'triangle', 0.2);
+      flaks.push({ x, y, r: 2, maxR: 35, growing: true, dead: false });
+    }
+    function update() {
+      if (state === 'PLAY') {
+        if (Math.random() < 0.035 && missiles.length < 8) spawnMissile();
+        for (let i = missiles.length - 1; i >= 0; i--) {
+          let m = missiles[i];
+          m.progress += m.spd;
+          let curX = m.sx + (m.tx - m.sx) * m.progress;
+          let curY = m.sy + (m.ty - m.sy) * m.progress;
+          // Check collision with flak
+          flaks.forEach(f => {
+            if (Math.hypot(curX - f.x, curY - f.y) < f.r) {
+              m.dead = true; score += 100; beep(600, 'sawtooth', 0.15);
+            }
+          });
+          if (m.progress >= 1.0) {
+            m.dead = true; beep(120, 'sawtooth', 0.35);
+            // Destroy city near impact
+            cities = cities.filter(cx => Math.abs(cx - m.tx) > 25);
+            if (cities.length === 0) state = 'OVER';
+          }
+          if (m.dead) missiles.splice(i, 1);
+        }
+        for (let i = flaks.length - 1; i >= 0; i--) {
+          let f = flaks[i];
+          if (f.growing) { f.r += 1.8; if (f.r >= f.maxR) f.growing = false; }
+          else { f.r -= 1.2; if (f.r <= 0) f.dead = true; }
+          if (f.dead) flaks.splice(i, 1);
+        }
+        if (ammo <= 0 && missiles.length === 0) state = 'OVER';
+      }
+    }
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Ground
+      ctx.fillStyle = '#b45309'; ctx.fillRect(0, 390, canvas.width, 30);
+      // Cities
+      cities.forEach(cx => {
+        ctx.fillStyle = '#38bdf8'; ctx.fillRect(cx - 15, 372, 30, 18);
+        ctx.fillStyle = '#facc15'; ctx.fillRect(cx - 8, 376, 5, 5); ctx.fillRect(cx + 3, 376, 5, 5);
+      });
+      // Missiles
+      ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 1.5;
+      missiles.forEach(m => {
+        let curX = m.sx + (m.tx - m.sx) * m.progress;
+        let curY = m.sy + (m.ty - m.sy) * m.progress;
+        ctx.beginPath(); ctx.moveTo(m.sx, m.sy); ctx.lineTo(curX, curY); ctx.stroke();
+        ctx.fillStyle = '#f87171'; ctx.fillRect(curX - 2, curY - 2, 4, 4);
+      });
+      // Flaks
+      flaks.forEach(f => {
+        ctx.fillStyle = 'rgba(251, 146, 60, 0.7)';
+        ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#fef08a'; ctx.lineWidth = 2; ctx.stroke();
+      });
+      // HUD
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 16px monospace'; ctx.textAlign = 'left';
+      ctx.fillText('SCORE: ' + score + '  AMMO: ' + ammo, 20, 30);
+      ctx.textAlign = 'right';
+      ctx.fillText('CITIES: ' + cities.length + '/6', canvas.width - 20, 30);
+      if (state === 'OVER') {
+        ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#ef4444'; ctx.font = 'bold 32px monospace'; ctx.textAlign = 'center';
+        ctx.fillText('DEFENSE COLLAPSED', canvas.width / 2, canvas.height / 2 - 20);
+        ctx.font = '16px monospace'; ctx.fillStyle = '#cbd5e1';
+        ctx.fillText('Final Score: ' + score + ' • Click to Defend Again', canvas.width / 2, canvas.height / 2 + 20);
+      }
+    }
+    function loop() { update(); draw(); requestAnimationFrame(loop); }
+    function act(e) {
+      let rect = canvas.getBoundingClientRect();
+      let cx = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+      let cy = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
+      if (state === 'OVER') { cities = [80, 160, 240, 360, 440, 520]; score = 0; ammo = 30; missiles = []; flaks = []; state = 'PLAY'; return; }
+      explode(cx, cy);
+    }
+    canvas.addEventListener('mousedown', act);
+    canvas.addEventListener('touchstart', e => { e.preventDefault(); act(e); });
+    loop();
+  </script>
+</body>
+</html>

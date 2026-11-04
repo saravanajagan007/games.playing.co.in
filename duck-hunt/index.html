@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/embed-guard.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Duck Hunt Precision Shooter</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body { background: #0c1222; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; font-family: monospace; }
+    #canvas { background: #38bdf8; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-radius: 12px; max-width: 95vw; max-height: 85vh; cursor: crosshair; }
+    .hint { margin-top: 10px; color: #94a3b8; font-size: 13px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="600" height="400"></canvas>
+  <div class="hint">Click or Tap Flying Ducks to Shoot • Watch Your Ammo</div>
+  <script>
+    const canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d');
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function beep(f, t, d) {
+      try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
+        g.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + d);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(); o.stop(audioCtx.currentTime + d);
+      } catch(e) {}
+    }
+    let ducks = [], score = 0, round = 1, ammo = 3, state = 'PLAY';
+    function spawnDuck() {
+      ducks.push({
+        x: Math.random() * (canvas.width - 100) + 50, y: 320,
+        vx: (Math.random() - 0.5) * 5 + (Math.random() > 0.5 ? 2.5 : -2.5),
+        vy: -(Math.random() * 2.5 + 2.5),
+        alive: true, hitTime: 0, r: 20
+      });
+    }
+    function shoot(cx, cy) {
+      if (state === 'OVER') { score = 0; round = 1; ducks = []; state = 'PLAY'; spawnDuck(); return; }
+      if (ammo <= 0) return;
+      ammo--; beep(180, 'sawtooth', 0.1);
+      let hit = false;
+      ducks.forEach(d => {
+        if (d.alive && Math.hypot(d.x - cx, d.y - cy) < d.r + 15) {
+          d.alive = false; d.hitTime = 30; hit = true;
+          score += 100 * round; beep(880, 'triangle', 0.2);
+        }
+      });
+      if (ammo <= 0 && !hit) {
+        setTimeout(() => { if (ducks.some(d => d.alive)) state = 'OVER'; }, 1000);
+      }
+    }
+    function loop() {
+      ctx.fillStyle = '#38bdf8'; ctx.fillRect(0, 0, canvas.width, 320);
+      ctx.fillStyle = '#22c55e'; ctx.fillRect(0, 320, canvas.width, 80);
+      ctx.fillStyle = '#15803d'; ctx.fillRect(0, 305, canvas.width, 20);
+
+      if (state === 'PLAY') {
+        if (ducks.length === 0 || ducks.every(d => !d.alive && d.hitTime <= 0)) {
+          ducks = []; ammo = 3; round++;
+          spawnDuck();
+        }
+        ducks.forEach((d, idx) => {
+          if (d.alive) {
+            d.x += d.vx; d.y += d.vy;
+            if (d.x < 30 || d.x > canvas.width - 30) d.vx *= -1;
+            if (d.y < 30) d.vy = Math.abs(d.vy);
+            if (d.y > 310) d.vy = -Math.abs(d.vy);
+            // Draw Duck
+            ctx.fillStyle = '#854d0e';
+            ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#16a34a';
+            ctx.beginPath(); ctx.arc(d.x + (d.vx > 0 ? 12 : -12), d.y - 6, 10, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#facc15';
+            ctx.fillRect(d.x + (d.vx > 0 ? 18 : -24), d.y - 7, 10, 5);
+          } else if (d.hitTime > 0) {
+            d.hitTime--; d.y += 4;
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2); ctx.fill();
+          }
+        });
+      }
+      // HUD
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 18px monospace'; ctx.textAlign = 'left';
+      ctx.fillText('SCORE: ' + score + '  ROUND: ' + round, 20, 370);
+      ctx.textAlign = 'right';
+      ctx.fillText('AMMO: ' + '🎯'.repeat(ammo), canvas.width - 20, 370);
+
+      if (state === 'OVER') {
+        ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#ef4444'; ctx.font = 'bold 34px monospace'; ctx.textAlign = 'center';
+        ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 15);
+        ctx.font = '16px monospace'; ctx.fillStyle = '#cbd5e1';
+        ctx.fillText('Final Score: ' + score + ' • Click to Restart', canvas.width / 2, canvas.height / 2 + 25);
+      }
+      requestAnimationFrame(loop);
+    }
+    function handleClick(e) {
+      let rect = canvas.getBoundingClientRect();
+      let cx = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+      let cy = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
+      shoot(cx, cy);
+    }
+    canvas.addEventListener('mousedown', handleClick);
+    canvas.addEventListener('touchstart', e => { e.preventDefault(); handleClick(e); });
+    spawnDuck(); loop();
+  </script>
+</body>
+</html>
