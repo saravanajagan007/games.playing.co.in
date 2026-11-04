@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Color Switch Orbit</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 400px; display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #c084fc; font-weight: 700; }
+canvas { background: #111827; border: 2px solid #334155; border-radius: 8px; margin: 16px auto; cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🎯 COLOR SWITCH</h1>
+  <span>Score: <span id="score" style="color:#c084fc; font-weight:700;">0</span></span>
+</header>
+<canvas id="c" width="340" height="460"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let ballY = 360, vy = 0;
+let ringRot = 0;
+let score = 0;
+
+function update() {
+  vy += 0.28;
+  ballY += vy;
+  ringRot += 0.03;
+
+  if (ballY > 440) {
+    ballY = 360; vy = -7;
+  }
+  draw();
+  requestAnimationFrame(update);
+}
+
+function draw() {
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, 340, 460);
+
+  // Rotating circle
+  ctx.save();
+  ctx.translate(170, 180);
+  ctx.rotate(ringRot);
+  ctx.lineWidth = 14;
+
+  const cols = ['#ef4444', '#3b82f6', '#eab308', '#a855f7'];
+  for (let i=0; i<4; i++) {
+    ctx.beginPath();
+    ctx.arc(0, 0, 70, i * Math.PI/2, (i+1) * Math.PI/2);
+    ctx.strokeStyle = cols[i];
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Ball
+  ctx.fillStyle = '#ef4444';
+  ctx.beginPath();
+  ctx.arc(170, ballY, 10, 0, Math.PI*2);
+  ctx.fill();
+}
+
+function jump() { vy = -6.5; }
+canvas.addEventListener('click', jump);
+window.addEventListener('keydown', e => { if (e.code === 'Space') jump(); });
+update();
+</script>
+</body>
+</html>

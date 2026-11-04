@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pixel Dungeon Mini</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 400px; display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #818cf8; font-weight: 700; }
+canvas { background: #09090b; border: 2px solid #4f46e5; border-radius: 8px; margin: 16px auto; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🗡️ PIXEL DUNGEON</h1>
+  <span>HP: <span id="hp" style="color:#ef4444; font-weight:700;">100</span></span>
+</header>
+<canvas id="c" width="320" height="320"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let px = 2, py = 2;
+
+function draw() {
+  ctx.fillStyle = '#09090b';
+  ctx.fillRect(0, 0, 320, 320);
+
+  // Tiles
+  for (let r=0; r<8; r++) {
+    for (let c=0; c<8; c++) {
+      ctx.strokeStyle = '#27272a';
+      ctx.strokeRect(c*40, r*40, 40, 40);
+    }
+  }
+
+  // Chest
+  ctx.fillStyle = '#facc15';
+  ctx.fillRect(6*40 + 8, 6*40 + 8, 24, 24);
+
+  // Player
+  ctx.fillStyle = '#38bdf8';
+  ctx.fillRect(px*40 + 8, py*40 + 8, 24, 24);
+}
+
+window.addEventListener('keydown', e => {
+  if (['ArrowUp','KeyW'].includes(e.code) && py > 0) py--;
+  if (['ArrowDown','KeyS'].includes(e.code) && py < 7) py++;
+  if (['ArrowLeft','KeyA'].includes(e.code) && px > 0) px--;
+  if (['ArrowRight','KeyD'].includes(e.code) && px < 7) px++;
+  draw();
+  if (px === 6 && py === 6) alert("Treasure Looted! Floor Cleared!");
+});
+draw();
+</script>
+</body>
+</html>

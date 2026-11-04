@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Crossy Road Highway Rush</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 400px; display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #f59e0b; font-weight: 700; }
+canvas { background: #15803d; border: 2px solid #334155; border-radius: 8px; margin: 12px auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+#dpad { display: flex; gap: 12px; margin-top: 6px; }
+button { background: #f59e0b; color: #0f172a; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 1.2rem; cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🐔 CROSSY HIGHWAY</h1>
+  <span>Score: <span id="score" style="color:#f59e0b; font-weight:700;">0</span></span>
+</header>
+<canvas id="c" width="360" height="440"></canvas>
+<div id="dpad">
+  <button id="btn-left">◀</button>
+  <button id="btn-hop">HOP ⬆</button>
+  <button id="btn-right">▶</button>
+</div>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let px = 180, py = 400;
+let score = 0;
+let cars = [
+  { x: 50, y: 320, spd: 3, len: 50, col: '#ef4444' },
+  { x: 200, y: 260, spd: -4, len: 60, col: '#3b82f6' },
+  { x: 100, y: 200, spd: 2.5, len: 70, col: '#eab308' },
+  { x: 280, y: 140, spd: -3.5, len: 50, col: '#a855f7' }
+];
+
+function update() {
+  cars.forEach(c => {
+    c.x += c.spd;
+    if (c.spd > 0 && c.x > 380) c.x = -80;
+    if (c.spd < 0 && c.x < -80) c.x = 380;
+
+    // Check hit
+    if (px + 10 > c.x && px - 10 < c.x + c.len && py + 10 > c.y && py - 10 < c.y + 24) {
+      alert("Squashed! Highway score: " + score);
+      px = 180; py = 400; score = 0;
+      document.getElementById('score').innerText = score;
+    }
+  });
+
+  draw();
+  requestAnimationFrame(update);
+}
+
+function draw() {
+  ctx.fillStyle = '#15803d'; // Grass
+  ctx.fillRect(0, 0, 360, 440);
+
+  // Roads
+  ctx.fillStyle = '#334155';
+  ctx.fillRect(0, 120, 360, 240);
+
+  // Cars
+  cars.forEach(c => {
+    ctx.fillStyle = c.col;
+    ctx.fillRect(c.x, c.y, c.len, 24);
+  });
+
+  // Chicken
+  ctx.fillStyle = '#f8fafc';
+  ctx.beginPath();
+  ctx.arc(px, py, 12, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = '#ef4444';
+  ctx.fillRect(px - 4, py - 16, 8, 4); // comb
+}
+
+function hop(dx, dy) {
+  px += dx; py += dy;
+  if (py < 60) {
+    score += 10;
+    document.getElementById('score').innerText = score;
+    py = 400;
+  }
+}
+
+window.addEventListener('keydown', e => {
+  if (['ArrowUp','KeyW'].includes(e.code)) hop(0, -30);
+  if (['ArrowLeft','KeyA'].includes(e.code)) hop(-25, 0);
+  if (['ArrowRight','KeyD'].includes(e.code)) hop(25, 0);
+});
+
+document.getElementById('btn-hop').onclick = () => hop(0, -30);
+document.getElementById('btn-left').onclick = () => hop(-25, 0);
+document.getElementById('btn-right').onclick = () => hop(25, 0);
+
+update();
+</script>
+</body>
+</html>

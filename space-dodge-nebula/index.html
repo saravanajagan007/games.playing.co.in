@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Nebula Asteroid Dodge</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 400px; display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #818cf8; font-weight: 700; }
+canvas { background: #030712; border: 2px solid #4f46e5; border-radius: 8px; margin: 16px auto; cursor: crosshair; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🚀 NEBULA DODGE</h1>
+  <span>Score: <span id="score" style="color:#818cf8; font-weight:700;">0</span></span>
+</header>
+<canvas id="c" width="340" height="440"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let shipX = 170;
+let rocks = [];
+let score = 0;
+
+function spawn() {
+  rocks.push({ x: Math.random() * 300 + 20, y: -20, r: 16, spd: Math.random() * 3 + 3 });
+}
+
+function update() {
+  if (Math.random() < 0.05) spawn();
+  score++;
+  document.getElementById('score').innerText = Math.floor(score/10);
+
+  rocks.forEach(rk => {
+    rk.y += rk.spd;
+    if (Math.hypot(rk.x - shipX, rk.y - 380) < rk.r + 14) {
+      alert("Asteroid collision! Final score: " + Math.floor(score/10));
+      rocks = []; score = 0;
+    }
+  });
+  rocks = rocks.filter(rk => rk.y < 460);
+
+  draw();
+  requestAnimationFrame(update);
+}
+
+function draw() {
+  ctx.fillStyle = '#030712';
+  ctx.fillRect(0, 0, 340, 440);
+
+  // Asteroids
+  ctx.fillStyle = '#64748b';
+  rocks.forEach(rk => {
+    ctx.beginPath();
+    ctx.arc(rk.x, rk.y, rk.r, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  // Ship
+  ctx.fillStyle = '#38bdf8';
+  ctx.beginPath();
+  ctx.moveTo(shipX, 360);
+  ctx.lineTo(shipX - 16, 395);
+  ctx.lineTo(shipX + 16, 395);
+  ctx.closePath();
+  ctx.fill();
+}
+
+canvas.addEventListener('mousemove', e => {
+  const r = canvas.getBoundingClientRect();
+  shipX = e.clientX - r.left;
+});
+canvas.addEventListener('touchmove', e => {
+  const r = canvas.getBoundingClientRect();
+  shipX = e.touches[0].clientX - r.left;
+});
+update();
+</script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Balloon Pop Carnival Rush</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 400px; display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #ef4444; font-weight: 700; }
+canvas { background: #38bdf8; border: 2px solid #334155; border-radius: 8px; margin: 16px auto; cursor: crosshair; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🎈 BALLOON POP RUSH</h1>
+  <span>Score: <span id="score" style="color:#facc15; font-weight:700;">0</span></span>
+</header>
+<canvas id="c" width="340" height="440"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const COLORS = ["#ef4444", "#3b82f6", "#22c55e", "#eab308", "#ec4899"];
+
+let balloons = [];
+let score = 0;
+
+function spawn() {
+  balloons.push({
+    x: Math.random() * 280 + 30,
+    y: 460,
+    r: 22,
+    spd: Math.random() * 2.5 + 2,
+    col: COLORS[Math.floor(Math.random() * COLORS.length)]
+  });
+}
+
+function update() {
+  if (Math.random() < 0.04) spawn();
+
+  balloons.forEach(b => { b.y -= b.spd; });
+  balloons = balloons.filter(b => b.y > -40);
+
+  draw();
+  requestAnimationFrame(update);
+}
+
+function draw() {
+  ctx.fillStyle = '#38bdf8';
+  ctx.fillRect(0, 0, 340, 440);
+
+  balloons.forEach(b => {
+    ctx.fillStyle = b.col;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.stroke();
+  });
+}
+
+canvas.addEventListener('click', e => {
+  const r = canvas.getBoundingClientRect();
+  const mx = e.clientX - r.left;
+  const my = e.clientY - r.top;
+
+  balloons = balloons.filter(b => {
+    if (Math.hypot(b.x - mx, b.y - my) < b.r + 5) {
+      score += 10;
+      document.getElementById('score').innerText = score;
+      return false;
+    }
+    return true;
+  });
+});
+
+update();
+</script>
+</body>
+</html>

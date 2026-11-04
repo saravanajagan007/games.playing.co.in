@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ninja Rope Swing</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 440px; display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #f43f5e; font-weight: 700; }
+canvas { background: #0f172a; border: 2px solid #f43f5e; border-radius: 8px; margin: 16px auto; cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🥷 ROPE SWING NINJA</h1>
+  <span>Swing Distance</span>
+</header>
+<canvas id="c" width="400" height="300"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let px = 80, py = 180, vx = 2, vy = 0;
+let attached = false;
+let anchor = { x: 200, y: 30 };
+
+function update() {
+  if (attached) {
+    const dx = px - anchor.x;
+    const dy = py - anchor.y;
+    const dist = Math.hypot(dx, dy);
+    vx -= (dx / dist) * 0.4;
+    vy -= (dy / dist) * 0.4;
+  } else {
+    vy += 0.3; // gravity
+  }
+
+  px += vx; py += vy;
+  if (py > 280) { py = 180; px = 80; vx = 2; vy = 0; attached = false; }
+  draw();
+  requestAnimationFrame(update);
+}
+
+function draw() {
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, 400, 300);
+
+  // Anchor
+  ctx.fillStyle = '#facc15';
+  ctx.beginPath();
+  ctx.arc(anchor.x, anchor.y, 8, 0, Math.PI*2);
+  ctx.fill();
+
+  // Rope
+  if (attached) {
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(anchor.x, anchor.y);
+    ctx.lineTo(px, py);
+    ctx.stroke();
+  }
+
+  // Ninja
+  ctx.fillStyle = '#f43f5e';
+  ctx.beginPath();
+  ctx.arc(px, py, 12, 0, Math.PI*2);
+  ctx.fill();
+}
+
+canvas.addEventListener('mousedown', () => { attached = true; });
+window.addEventListener('mouseup', () => { attached = false; });
+update();
+</script>
+</body>
+</html>

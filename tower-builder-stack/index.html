@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Tower Builder Block Stack</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 400px; display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #fb7185; font-weight: 700; }
+canvas { background: #1e1b4b; border: 2px solid #334155; border-radius: 8px; margin: 16px auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5); cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🏢 TOWER STACK</h1>
+  <span>Floors: <span id="floors" style="color:#fb7185; font-weight:700;">0</span></span>
+</header>
+<canvas id="c" width="340" height="460"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const COLORS = ["#f43f5e", "#ec4899", "#d946ef", "#a855f7", "#8b5cf6", "#6366f1", "#3b82f6", "#06b6d4"];
+
+let stack = [{ x: 95, y: 420, w: 150, h: 25, col: '#f43f5e' }];
+let cur = { x: 0, y: 395, w: 150, h: 25, spd: 3, col: '#ec4899' };
+let score = 0;
+let isOver = false;
+
+function update() {
+  if (!isOver) {
+    cur.x += cur.spd;
+    if (cur.x + cur.w > 340 || cur.x < 0) cur.spd = -cur.spd;
+  }
+  draw();
+  requestAnimationFrame(update);
+}
+
+function draw() {
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, 340, 460);
+
+  stack.forEach(b => {
+    ctx.fillStyle = b.col;
+    ctx.fillRect(b.x, b.y, b.w, b.h);
+  });
+
+  if (!isOver) {
+    ctx.fillStyle = cur.col;
+    ctx.fillRect(cur.x, cur.y, cur.w, cur.h);
+  }
+}
+
+function placeBlock() {
+  if (isOver) {
+    stack = [{ x: 95, y: 420, w: 150, h: 25, col: '#f43f5e' }];
+    cur = { x: 0, y: 395, w: 150, h: 25, spd: 3, col: '#ec4899' };
+    score = 0; isOver = false;
+    document.getElementById('floors').innerText = score;
+    return;
+  }
+
+  const top = stack[stack.length - 1];
+  const diff = cur.x - top.x;
+
+  if (Math.abs(diff) >= cur.w) {
+    isOver = true;
+    alert("Tower toppled! Final floors: " + score);
+    return;
+  }
+
+  const newW = cur.w - Math.abs(diff);
+  const newX = diff > 0 ? cur.x : top.x;
+
+  stack.push({ x: newX, y: cur.y, w: newW, h: cur.h, col: cur.col });
+  score++;
+  document.getElementById('floors').innerText = score;
+
+  if (stack.length > 12) {
+    stack.forEach(b => { b.y += 25; });
+  }
+
+  cur = {
+    x: 0,
+    y: stack[stack.length - 1].y - 25,
+    w: newW,
+    h: 25,
+    spd: (Math.random() > 0.5 ? 1 : -1) * (3 + score * 0.15),
+    col: COLORS[score % COLORS.length]
+  };
+}
+
+canvas.addEventListener('click', placeBlock);
+window.addEventListener('keydown', e => { if (e.code === 'Space') placeBlock(); });
+update();
+</script>
+</body>
+</html>

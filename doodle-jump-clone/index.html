@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Doodle Sky Jumper</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 400px; display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #a3e635; font-weight: 700; }
+canvas { background: #fef9c3; border: 2px solid #334155; border-radius: 8px; margin: 12px auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+#touch-bar { width: 360px; display: flex; justify-content: space-between; gap: 10px; margin-top: 6px; }
+.t-btn { flex: 1; height: 50px; background: #334155; color: white; border: none; border-radius: 8px; font-size: 1.4rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🦘 DOODLE JUMPER</h1>
+  <span>Score: <span id="score" style="color: #a3e635; font-weight:700;">0</span></span>
+</header>
+<canvas id="c" width="360" height="480"></canvas>
+<div id="touch-bar">
+  <button class="t-btn" id="b-left">◀</button>
+  <button class="t-btn" id="b-right">▶</button>
+</div>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+let px = 180, py = 350, vx = 0, vy = -10;
+let platforms = [];
+let score = 0;
+let isGameOver = false;
+
+function init() {
+  px = 180; py = 350; vx = 0; vy = -10;
+  score = 0; isGameOver = false;
+  platforms = [];
+  for (let i=0; i<7; i++) {
+    platforms.push({ x: Math.random() * 280, y: i * 70 + 50, w: 70, h: 14 });
+  }
+}
+
+function update() {
+  if (isGameOver) return;
+  vy += 0.35; // gravity
+  px += vx;
+  py += vy;
+
+  if (px < -20) px = 360;
+  if (px > 360) px = -20;
+
+  // Jump on platforms
+  if (vy > 0) {
+    platforms.forEach(p => {
+      if (px + 20 > p.x && px < p.x + p.w && py + 30 >= p.y && py + 30 <= p.y + p.h + 10) {
+        vy = -11;
+      }
+    });
+  }
+
+  // Camera scroll
+  if (py < 200) {
+    const diff = 200 - py;
+    py = 200;
+    score += Math.floor(diff);
+    document.getElementById('score').innerText = score;
+    platforms.forEach(p => {
+      p.y += diff;
+      if (p.y > 480) {
+        p.y = 0;
+        p.x = Math.random() * 280;
+      }
+    });
+  }
+
+  if (py > 500) {
+    isGameOver = true;
+    setTimeout(() => {
+      alert("Game Over! Highest altitude: " + score);
+      init();
+    }, 100);
+  }
+
+  draw();
+  requestAnimationFrame(update);
+}
+
+function draw() {
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(0, 0, 360, 480);
+
+  // Platforms
+  ctx.fillStyle = '#65a30d';
+  platforms.forEach(p => {
+    ctx.fillRect(p.x, p.y, p.w, p.h);
+    ctx.strokeStyle = '#365314';
+    ctx.strokeRect(p.x, p.y, p.w, p.h);
+  });
+
+  // Jumper
+  ctx.fillStyle = '#84cc16';
+  ctx.beginPath();
+  ctx.arc(px + 12, py + 12, 14, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = '#0f172a';
+  ctx.beginPath();
+  ctx.arc(px + 8, py + 8, 3, 0, Math.PI*2);
+  ctx.arc(px + 16, py + 8, 3, 0, Math.PI*2);
+  ctx.fill();
+}
+
+window.addEventListener('keydown', e => {
+  if (['ArrowLeft','KeyA'].includes(e.code)) vx = -5;
+  if (['ArrowRight','KeyD'].includes(e.code)) vx = 5;
+});
+window.addEventListener('keyup', () => { vx = 0; });
+
+document.getElementById('b-left').ontouchstart = () => { vx = -5; };
+document.getElementById('b-left').ontouchend = () => { vx = 0; };
+document.getElementById('b-right').ontouchstart = () => { vx = 5; };
+document.getElementById('b-right').ontouchend = () => { vx = 0; };
+
+init();
+update();
+</script>
+</body>
+</html>

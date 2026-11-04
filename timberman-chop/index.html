@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Timber Lumberjack Chop</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 400px; display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #f59e0b; font-weight: 700; }
+canvas { background: #0284c7; border: 2px solid #334155; border-radius: 8px; margin: 12px auto; }
+#tap-bar { display: flex; gap: 12px; }
+button { background: #d97706; color: white; border: none; padding: 14px 28px; border-radius: 8px; font-weight: 700; font-size: 1.2rem; cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🪓 TIMBER CHOP</h1>
+  <span>Score: <span id="score" style="color:#facc15; font-weight:700;">0</span></span>
+</header>
+<canvas id="c" width="340" height="420"></canvas>
+<div id="tap-bar">
+  <button id="b-left">CHOP ◀</button>
+  <button id="b-right">CHOP ▶</button>
+</div>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let playerSide = 'left';
+let branches = ['none', 'right', 'left', 'none', 'right'];
+let score = 0;
+
+function draw() {
+  ctx.fillStyle = '#38bdf8';
+  ctx.fillRect(0, 0, 340, 420);
+
+  // Trunk
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(135, 0, 70, 420);
+
+  // Branches
+  branches.forEach((b, idx) => {
+    const y = 340 - idx * 75;
+    ctx.fillStyle = '#15803d';
+    if (b === 'left') ctx.fillRect(45, y, 90, 20);
+    if (b === 'right') ctx.fillRect(205, y, 90, 20);
+  });
+
+  // Lumberjack
+  ctx.fillStyle = '#ef4444';
+  const px = playerSide === 'left' ? 85 : 225;
+  ctx.fillRect(px, 340, 30, 45);
+}
+
+function chop(side) {
+  playerSide = side;
+  score++;
+  document.getElementById('score').innerText = score;
+  branches.shift();
+  const next = Math.random() > 0.4 ? (Math.random() > 0.5 ? 'left' : 'right') : 'none';
+  branches.push(next);
+
+  if (branches[0] === playerSide) {
+    alert("Bonk! Branch crushed you! Final score: " + score);
+    score = 0;
+    branches = ['none', 'right', 'left', 'none', 'right'];
+    document.getElementById('score').innerText = score;
+  }
+  draw();
+}
+
+document.getElementById('b-left').onclick = () => chop('left');
+document.getElementById('b-right').onclick = () => chop('right');
+window.addEventListener('keydown', e => {
+  if (['ArrowLeft','KeyA'].includes(e.code)) chop('left');
+  if (['ArrowRight','KeyD'].includes(e.code)) chop('right');
+});
+draw();
+</script>
+</body>
+</html>

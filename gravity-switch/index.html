@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Gravity Switch Runner</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 440px; display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #c084fc; font-weight: 700; }
+canvas { background: #0f172a; border: 2px solid #a855f7; border-radius: 8px; margin: 16px auto; cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🔄 GRAVITY SWITCH</h1>
+  <span>Score: <span id="score" style="color:#c084fc; font-weight:700;">0</span></span>
+</header>
+<canvas id="c" width="400" height="300"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let py = 240, vy = 0, grav = 0.5;
+let obstacles = [{ x: 380, y: 220, w: 25, h: 40 }];
+let score = 0;
+
+function update() {
+  vy += grav;
+  py += vy;
+
+  if (py > 240) { py = 240; vy = 0; }
+  if (py < 40) { py = 40; vy = 0; }
+
+  obstacles.forEach(o => {
+    o.x -= 4;
+    if (py + 20 > o.y && py < o.y + o.h && 60 > o.x && 40 < o.x + o.w) {
+      alert("Crash! Score: " + score);
+      score = 0; o.x = 380;
+    }
+  });
+
+  if (obstacles[0].x < -30) {
+    obstacles[0].x = 420;
+    obstacles[0].y = grav > 0 ? 220 : 40;
+    score += 10;
+    document.getElementById('score').innerText = score;
+  }
+
+  draw();
+  requestAnimationFrame(update);
+}
+
+function draw() {
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, 400, 300);
+
+  // Ceil & Floor
+  ctx.fillStyle = '#334155';
+  ctx.fillRect(0, 0, 400, 30);
+  ctx.fillRect(0, 270, 400, 30);
+
+  // Obstacle
+  ctx.fillStyle = '#ef4444';
+  obstacles.forEach(o => ctx.fillRect(o.x, o.y, o.w, o.h));
+
+  // Player
+  ctx.fillStyle = '#c084fc';
+  ctx.fillRect(50, py, 20, 20);
+}
+
+function flip() { grav = -grav; }
+canvas.addEventListener('click', flip);
+window.addEventListener('keydown', e => { if (e.code === 'Space') flip(); });
+update();
+</script>
+</body>
+</html>

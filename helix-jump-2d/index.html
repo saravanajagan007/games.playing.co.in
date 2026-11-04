@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Helix Spiral Ball Drop</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 400px; display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #38bdf8; font-weight: 700; }
+canvas { background: #111827; border: 2px solid #334155; border-radius: 8px; margin: 16px auto; cursor: grab; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🌀 HELIX BALL DROP</h1>
+  <span>Level: <span id="lvl" style="color:#38bdf8; font-weight:700;">1</span></span>
+</header>
+<canvas id="c" width="340" height="460"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let ballY = 120, vy = 0;
+let rot = 0;
+let isDragging = false, lastX = 0;
+
+function update() {
+  vy += 0.3;
+  ballY += vy;
+  if (ballY > 320) { vy = -8; ballY = 320; }
+  draw();
+  requestAnimationFrame(update);
+}
+
+function draw() {
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, 340, 460);
+
+  // Center pole
+  ctx.fillStyle = '#334155';
+  ctx.fillRect(150, 0, 40, 460);
+
+  // Platform ring
+  ctx.save();
+  ctx.translate(170, 320);
+  ctx.fillStyle = '#38bdf8';
+  ctx.beginPath();
+  ctx.arc(0, 0, 90, rot, rot + Math.PI*1.4);
+  ctx.lineWidth = 18;
+  ctx.strokeStyle = '#0284c7';
+  ctx.stroke();
+  ctx.restore();
+
+  // Bouncing Ball
+  ctx.fillStyle = '#ef4444';
+  ctx.beginPath();
+  ctx.arc(170, ballY, 12, 0, Math.PI*2);
+  ctx.fill();
+}
+
+canvas.addEventListener('mousedown', e => { isDragging = true; lastX = e.clientX; });
+window.addEventListener('mousemove', e => {
+  if (isDragging) {
+    rot += (e.clientX - lastX) * 0.02;
+    lastX = e.clientX;
+  }
+});
+window.addEventListener('mouseup', () => { isDragging = false; });
+
+update();
+</script>
+</body>
+</html>
