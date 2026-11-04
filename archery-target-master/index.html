@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Archery Bullseye Master</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 400px; display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #facc15; font-weight: 700; }
+canvas { background: #15803d; border: 2px solid #334155; border-radius: 8px; margin: 16px auto; cursor: crosshair; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🏹 ARCHERY MASTER</h1>
+  <span>Score: <span id="score" style="color:#facc15; font-weight:700;">0</span></span>
+</header>
+<canvas id="c" width="340" height="420"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let score = 0;
+
+function drawTarget() {
+  ctx.fillStyle = '#15803d';
+  ctx.fillRect(0, 0, 340, 420);
+
+  // Target rings (Center 170, 160)
+  const rings = [
+    { r: 100, col: '#f8fafc' },
+    { r: 80, col: '#0f172a' },
+    { r: 60, col: '#38bdf8' },
+    { r: 40, col: '#ef4444' },
+    { r: 20, col: '#facc15' }
+  ];
+  rings.forEach(rg => {
+    ctx.fillStyle = rg.col;
+    ctx.beginPath();
+    ctx.arc(170, 160, rg.r, 0, Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle = '#334155';
+    ctx.stroke();
+  });
+}
+
+canvas.addEventListener('click', e => {
+  const r = canvas.getBoundingClientRect();
+  const mx = e.clientX - r.left;
+  const my = e.clientY - r.top;
+  const dist = Math.hypot(mx - 170, my - 160);
+
+  // Draw arrow impact
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.arc(mx, my, 4, 0, Math.PI*2);
+  ctx.fill();
+
+  let pts = 0;
+  if (dist < 20) pts = 10;
+  else if (dist < 40) pts = 8;
+  else if (dist < 60) pts = 6;
+  else if (dist < 80) pts = 4;
+  else if (dist < 100) pts = 2;
+
+  score += pts;
+  document.getElementById('score').innerText = score;
+});
+drawTarget();
+</script>
+</body>
+</html>

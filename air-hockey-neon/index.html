@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Neon Air Hockey</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 400px; display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #38bdf8; font-weight: 700; }
+canvas { background: #0f172a; border: 4px solid #0284c7; border-radius: 12px; margin: 16px auto; cursor: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🏒 NEON AIR HOCKEY</h1>
+  <span>Player: <span id="p-score" style="color:#38bdf8; font-weight:700;">0</span> | AI: <span id="ai-score" style="color:#ef4444; font-weight:700;">0</span></span>
+</header>
+<canvas id="c" width="340" height="460"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let puck = { x: 170, y: 230, vx: 2, vy: 3 };
+let player = { x: 170, y: 380, r: 24 };
+let ai = { x: 170, y: 80, r: 24 };
+let pScore = 0, aiScore = 0;
+
+function update() {
+  puck.x += puck.vx;
+  puck.y += puck.vy;
+
+  // Bounce walls
+  if (puck.x < 15 || puck.x > 325) puck.vx = -puck.vx;
+
+  // Goal check
+  if (puck.y < 10) {
+    pScore++; document.getElementById('p-score').innerText = pScore;
+    resetPuck();
+  } else if (puck.y > 450) {
+    aiScore++; document.getElementById('ai-score').innerText = aiScore;
+    resetPuck();
+  }
+
+  // AI simple tracking
+  ai.x += (puck.x - ai.x) * 0.08;
+
+  // Mallet collision
+  [player, ai].forEach(m => {
+    if (Math.hypot(puck.x - m.x, puck.y - m.y) < m.r + 12) {
+      puck.vy = -puck.vy * 1.05;
+      puck.vx = (puck.x - m.x) * 0.2;
+    }
+  });
+
+  draw();
+  requestAnimationFrame(update);
+}
+
+function resetPuck() { puck = { x: 170, y: 230, vx: (Math.random()-0.5)*4, vy: 3 }; }
+
+function draw() {
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, 340, 460);
+
+  // Center line
+  ctx.strokeStyle = '#334155';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0, 230); ctx.lineTo(340, 230);
+  ctx.stroke();
+
+  // Mallets
+  ctx.fillStyle = '#ef4444';
+  ctx.beginPath(); ctx.arc(ai.x, ai.y, ai.r, 0, Math.PI*2); ctx.fill();
+
+  ctx.fillStyle = '#38bdf8';
+  ctx.beginPath(); ctx.arc(player.x, player.y, player.r, 0, Math.PI*2); ctx.fill();
+
+  // Puck
+  ctx.fillStyle = '#facc15';
+  ctx.beginPath(); ctx.arc(puck.x, puck.y, 12, 0, Math.PI*2); ctx.fill();
+}
+
+canvas.addEventListener('mousemove', e => {
+  const r = canvas.getBoundingClientRect();
+  player.x = e.clientX - r.left;
+  player.y = Math.max(250, e.clientY - r.top);
+});
+update();
+</script>
+</body>
+</html>

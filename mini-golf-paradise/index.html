@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mini Golf Paradise</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 400px; display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #4ade80; font-weight: 700; }
+canvas { background: #15803d; border: 8px solid #14532d; border-radius: 12px; margin: 16px auto; cursor: crosshair; }
+</style>
+</head>
+<body>
+<header>
+  <h1>⛳ MINI GOLF PARADISE</h1>
+  <span>Strokes: <span id="strokes" style="color:#facc15; font-weight:700;">0</span></span>
+</header>
+<canvas id="c" width="340" height="440"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let ball = { x: 170, y: 380, vx: 0, vy: 0 };
+let hole = { x: 170, y: 80 };
+let strokes = 0;
+
+function update() {
+  ball.x += ball.vx;
+  ball.y += ball.vy;
+  ball.vx *= 0.96; // friction
+  ball.vy *= 0.96;
+
+  if (ball.x < 15 || ball.x > 325) ball.vx = -ball.vx;
+  if (ball.y < 15 || ball.y > 425) ball.vy = -ball.vy;
+
+  if (Math.hypot(ball.x - hole.x, ball.y - hole.y) < 10) {
+    alert("Hole in " + strokes + "! Magnificent putting!");
+    ball = { x: 170, y: 380, vx: 0, vy: 0 };
+    strokes = 0;
+    document.getElementById('strokes').innerText = strokes;
+  }
+
+  draw();
+  requestAnimationFrame(update);
+}
+
+function draw() {
+  ctx.fillStyle = '#15803d';
+  ctx.fillRect(0, 0, 340, 440);
+
+  // Hole & Flag
+  ctx.fillStyle = '#0f172a';
+  ctx.beginPath();
+  ctx.arc(hole.x, hole.y, 9, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = '#ef4444';
+  ctx.fillRect(hole.x, hole.y - 20, 14, 10);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(hole.x, hole.y - 20, 2, 20);
+
+  // Golf ball
+  ctx.fillStyle = '#f8fafc';
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, 7, 0, Math.PI*2);
+  ctx.fill();
+}
+
+canvas.addEventListener('click', e => {
+  const r = canvas.getBoundingClientRect();
+  const dx = (e.clientX - r.left) - ball.x;
+  const dy = (e.clientY - r.top) - ball.y;
+  ball.vx = dx * 0.08;
+  ball.vy = dy * 0.08;
+  strokes++;
+  document.getElementById('strokes').innerText = strokes;
+});
+update();
+</script>
+</body>
+</html>

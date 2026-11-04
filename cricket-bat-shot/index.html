@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Cricket T20 Batter</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 400px; display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #4ade80; font-weight: 700; }
+canvas { background: #15803d; border: 4px solid #14532d; border-radius: 8px; margin: 16px auto; cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🏏 CRICKET T20 BATTER</h1>
+  <span>Runs: <span id="runs" style="color:#facc15; font-weight:700;">0</span></span>
+</header>
+<canvas id="c" width="340" height="420"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let ball = { x: 170, y: 50, vy: 5, active: true };
+let runs = 0;
+
+function update() {
+  if (ball.active) {
+    ball.y += ball.vy;
+    if (ball.y > 400) {
+      alert("Bowled! Stump rattled!");
+      ball = { x: 170, y: 50, vy: 5, active: true };
+    }
+  }
+  draw();
+  requestAnimationFrame(update);
+}
+
+function draw() {
+  ctx.fillStyle = '#15803d';
+  ctx.fillRect(0, 0, 340, 420);
+
+  // Pitch
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(130, 40, 80, 340);
+
+  // Stumps
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(155, 360, 30, 8);
+
+  // Leather ball
+  ctx.fillStyle = '#ef4444';
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, 8, 0, Math.PI*2);
+  ctx.fill();
+}
+
+canvas.addEventListener('click', () => {
+  if (ball.y > 300 && ball.y < 370) {
+    runs += 6;
+    document.getElementById('runs').innerText = runs;
+    alert("MAXIMUM! Smashed over deep mid-wicket for SIX!");
+    ball = { x: 170, y: 50, vy: 5, active: true };
+  }
+});
+update();
+</script>
+</body>
+</html>

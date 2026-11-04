@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Penalty Kick Soccer</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 400px; display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #34d399; font-weight: 700; }
+canvas { background: #15803d; border: 4px solid #14532d; border-radius: 8px; margin: 16px auto; cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>⚽ PENALTY KICK</h1>
+  <span>Goals: <span id="goals" style="color:#facc15; font-weight:700;">0</span></span>
+</header>
+<canvas id="c" width="340" height="420"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let ball = { x: 170, y: 360, vx: 0, vy: 0, kicked: false };
+let keeper = { x: 170, y: 130 };
+let goals = 0;
+
+function update() {
+  if (ball.kicked) {
+    ball.x += ball.vx;
+    ball.y += ball.vy;
+
+    if (ball.y <= 130) {
+      if (Math.abs(ball.x - keeper.x) > 35 && ball.x > 70 && ball.x < 270) {
+        goals++;
+        document.getElementById('goals').innerText = goals;
+        alert("GOAL! Spectacular top corner strike!");
+      } else {
+        alert("Saved! Goalkeeper blocks it!");
+      }
+      ball = { x: 170, y: 360, vx: 0, vy: 0, kicked: false };
+      keeper.x = 170;
+    }
+  }
+
+  draw();
+  requestAnimationFrame(update);
+}
+
+function draw() {
+  ctx.fillStyle = '#15803d';
+  ctx.fillRect(0, 0, 340, 420);
+
+  // Goal frame
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 6;
+  ctx.strokeRect(60, 50, 220, 100);
+
+  // Goalkeeper
+  ctx.fillStyle = '#facc15';
+  ctx.fillRect(keeper.x - 14, keeper.y - 20, 28, 40);
+
+  // Ball
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, 12, 0, Math.PI*2);
+  ctx.fill();
+}
+
+canvas.addEventListener('click', e => {
+  if (!ball.kicked) {
+    const r = canvas.getBoundingClientRect();
+    const targetX = e.clientX - r.left;
+    ball.vx = (targetX - 170) * 0.1;
+    ball.vy = -10;
+    ball.kicked = true;
+    keeper.x = Math.random() > 0.5 ? 120 : 220; // dive
+  }
+});
+update();
+</script>
+</body>
+</html>

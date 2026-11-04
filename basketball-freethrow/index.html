@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Basketball Free Throw</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 400px; display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #fb923c; font-weight: 700; }
+canvas { background: #1e293b; border: 2px solid #f97316; border-radius: 8px; margin: 16px auto; cursor: grab; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🏀 FREE THROW SHOOTOUT</h1>
+  <span>Swishes: <span id="score" style="color:#facc15; font-weight:700;">0</span></span>
+</header>
+<canvas id="c" width="340" height="440"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let ball = { x: 170, y: 380, vx: 0, vy: 0, flying: false };
+let score = 0;
+
+function update() {
+  if (ball.flying) {
+    ball.vy += 0.35;
+    ball.x += ball.vx;
+    ball.y += ball.vy;
+
+    // Check basket rim collision (170, 110)
+    if (Math.hypot(ball.x - 170, ball.y - 110) < 22 && ball.vy > 0) {
+      score += 2;
+      document.getElementById('score').innerText = score;
+      ball = { x: 170, y: 380, vx: 0, vy: 0, flying: false };
+    }
+
+    if (ball.y > 440) {
+      ball = { x: 170, y: 380, vx: 0, vy: 0, flying: false };
+    }
+  }
+
+  draw();
+  requestAnimationFrame(update);
+}
+
+function draw() {
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(0, 0, 340, 440);
+
+  // Backboard & Rim
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(140, 60, 60, 8);
+  ctx.fillStyle = '#ef4444';
+  ctx.fillRect(155, 68, 30, 4);
+
+  // Net
+  ctx.strokeStyle = '#fff';
+  ctx.strokeRect(158, 72, 24, 20);
+
+  // Ball
+  ctx.fillStyle = '#f97316';
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, 14, 0, Math.PI*2);
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.stroke();
+}
+
+let startY = 0;
+canvas.addEventListener('mousedown', e => { startY = e.clientY; });
+canvas.addEventListener('mouseup', e => {
+  if (!ball.flying) {
+    const diff = startY - e.clientY;
+    if (diff > 30) {
+      ball.vx = (e.clientX - 170) * 0.05;
+      ball.vy = -Math.min(14, diff * 0.12);
+      ball.flying = true;
+    }
+  }
+});
+update();
+</script>
+</body>
+</html>
