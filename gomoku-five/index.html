@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Gomoku Five in a Row</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 440px; display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #f59e0b; font-weight: 700; }
+canvas { background: #d97706; border: 4px solid #78350f; border-radius: 8px; margin: 20px auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5); cursor: crosshair; }
+button { background: #f59e0b; color: #0f172a; border: none; padding: 8px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>⚫ GOMOKU 5-IN-A-ROW</h1>
+  <span>Turn: <span id="turn" style="color:#0f172a; background:#f8fafc; padding:2px 6px; border-radius:4px;">Black</span></span>
+</header>
+<canvas id="c" width="360" height="360"></canvas>
+<button id="btn-reset">New Board</button>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const N = 12;
+const CELL = 360 / N;
+let board = Array(N).fill(null).map(() => Array(N).fill(0));
+let turn = 1; // 1: Black, 2: White
+
+function draw() {
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(0, 0, 360, 360);
+
+  // Grid lines
+  ctx.strokeStyle = '#451a03';
+  ctx.lineWidth = 1;
+  for (let i=0; i<N; i++) {
+    const pos = i * CELL + CELL/2;
+    ctx.beginPath();
+    ctx.moveTo(pos, CELL/2); ctx.lineTo(pos, 360 - CELL/2);
+    ctx.moveTo(CELL/2, pos); ctx.lineTo(360 - CELL/2, pos);
+    ctx.stroke();
+  }
+
+  // Stones
+  for (let r=0; r<N; r++) {
+    for (let c=0; c<N; c++) {
+      if (board[r][c] !== 0) {
+        ctx.fillStyle = board[r][c] === 1 ? '#0f172a' : '#f8fafc';
+        ctx.beginPath();
+        ctx.arc(c * CELL + CELL/2, r * CELL + CELL/2, CELL/2 - 2, 0, Math.PI*2);
+        ctx.fill();
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+canvas.addEventListener('click', e => {
+  const r = canvas.getBoundingClientRect();
+  const c = Math.floor((e.clientX - r.left) / CELL);
+  const row = Math.floor((e.clientY - r.top) / CELL);
+  if (row>=0 && row<N && c>=0 && c<N && board[row][c] === 0) {
+    board[row][c] = turn;
+    draw();
+    if (checkWin(row, c, turn)) {
+      setTimeout(() => alert((turn === 1 ? 'Black' : 'White') + " achieves 5-in-a-row victory!"), 100);
+      return;
+    }
+    turn = turn === 1 ? 2 : 1;
+    document.getElementById('turn').innerText = turn === 1 ? 'Black' : 'White';
+  }
+});
+
+function checkWin(r, c, p) {
+  const dirs = [[1,0],[0,1],[1,1],[1,-1]];
+  for (let [dr, dc] of dirs) {
+    let count = 1;
+    for (let step=1; step<5; step++) {
+      const nr = r + dr*step, nc = c + dc*step;
+      if (nr>=0 && nr<N && nc>=0 && nc<N && board[nr][nc] === p) count++; else break;
+    }
+    for (let step=1; step<5; step++) {
+      const nr = r - dr*step, nc = c - dc*step;
+      if (nr>=0 && nr<N && nc>=0 && nc<N && board[nr][nc] === p) count++; else break;
+    }
+    if (count >= 5) return true;
+  }
+  return false;
+}
+
+document.getElementById('btn-reset').onclick = () => {
+  board = Array(N).fill(null).map(() => Array(N).fill(0));
+  turn = 1;
+  draw();
+};
+
+draw();
+</script>
+</body>
+</html>

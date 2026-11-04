@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TriPeaks Solitaire Journey</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #064e3b; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 480px; display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: #022c22; border-bottom: 2px solid #059669; }
+h1 { font-size: 1.15rem; color: #34d399; font-weight: 700; }
+#peaks { display: flex; gap: 12px; margin: 20px auto; }
+.card { width: 50px; height: 72px; background: #f8fafc; color: #0f172a; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.4); cursor: pointer; }
+#waste-bar { display: flex; gap: 16px; margin-bottom: 24px; align-items: center; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🏔️ TRIPEAKS SOLITAIRE</h1>
+  <span>Waste: <span id="w-val" style="color: #facc15;">7♠</span></span>
+</header>
+<div id="peaks">
+  <div class="card" id="c1" onclick="tryPlay(8, '8♥', this)">8♥</div>
+  <div class="card" id="c2" onclick="tryPlay(6, '6♦', this)">6♦</div>
+  <div class="card" id="c3" onclick="tryPlay(10, '10♣', this)">10♣</div>
+  <div class="card" id="c4" onclick="tryPlay(7, '7♣', this)">7♣</div>
+</div>
+<div id="waste-bar">
+  <div class="card" id="waste" style="border: 2px solid #34d399;">7♠</div>
+</div>
+<script>
+let curWasteVal = 7;
+
+function tryPlay(val, str, el) {
+  if (Math.abs(val - curWasteVal) === 1 || (curWasteVal === 1 && val === 13) || (curWasteVal === 13 && val === 1)) {
+    curWasteVal = val;
+    document.getElementById('waste').innerText = str;
+    document.getElementById('w-val').innerText = str;
+    el.style.visibility = 'hidden';
+  } else {
+    alert("Must be 1 rank higher or lower than waste card!");
+  }
+}
+</script>
+</body>
+</html>

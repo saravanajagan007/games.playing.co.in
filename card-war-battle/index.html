@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Classic Card War Battle</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 440px; display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: #1e293b; border-bottom: 2px solid #334155; }
+h1 { font-size: 1.15rem; color: #f43f5e; font-weight: 700; }
+#arena { display: flex; gap: 30px; margin: 30px auto; align-items: center; }
+.card-slot { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.card { width: 75px; height: 110px; background: #f8fafc; color: #0f172a; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+.card.back { background: #1e3a8a; color: transparent; border: 2px solid #60a5fa; }
+button { background: #f43f5e; color: white; border: none; padding: 12px 28px; border-radius: 8px; font-weight: 700; font-size: 1.1rem; cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>⚔️ CARD WAR BATTLE</h1>
+  <span>Player: <span id="p-count" style="color:#facc15;">26</span> | AI: <span id="ai-count" style="color:#facc15;">26</span></span>
+</header>
+<div id="arena">
+  <div class="card-slot">
+    <span>You</span>
+    <div class="card" id="p-card">?</div>
+  </div>
+  <div style="font-size: 1.8rem; font-weight: 900; color: #e2e8f0;">VS</div>
+  <div class="card-slot">
+    <span>Enemy</span>
+    <div class="card" id="ai-card">?</div>
+  </div>
+</div>
+<button id="btn-flip">Flip Cards ⚔️</button>
+<script>
+let pCards = 26, aiCards = 26;
+const RANKS = [2,3,4,5,6,7,8,9,10,11,12,13,14];
+const SYMS = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+
+document.getElementById('btn-flip').onclick = function() {
+  const pVal = Math.floor(Math.random() * 13);
+  const aiVal = Math.floor(Math.random() * 13);
+
+  document.getElementById('p-card').innerText = SYMS[pVal];
+  document.getElementById('ai-card').innerText = SYMS[aiVal];
+
+  if (pVal > aiVal) {
+    pCards++; aiCards--;
+  } else if (aiVal > pVal) {
+    aiCards++; pCards--;
+  } else {
+    alert("WAR! Matching ranks declared war!");
+  }
+  document.getElementById('p-count').innerText = pCards;
+  document.getElementById('ai-count').innerText = aiCards;
+};
+</script>
+</body>
+</html>

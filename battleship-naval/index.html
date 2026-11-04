@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Naval Battleship Fleet</title>
+<script src="/embed-guard.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body { background: #082f49; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+header { width: 100%; max-width: 440px; display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: #0c4a6e; border-bottom: 2px solid #0284c7; }
+h1 { font-size: 1.15rem; color: #38bdf8; font-weight: 700; }
+#radar-box { margin: 20px auto; background: #0369a1; padding: 12px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+#grid { display: grid; grid-template-columns: repeat(8, 42px); grid-template-rows: repeat(8, 42px); gap: 4px; }
+.cell { width: 42px; height: 42px; background: #075985; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: background 0.15s; }
+.cell.hit { background: #dc2626; color: white; }
+.cell.miss { background: #0f172a; color: #94a3b8; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🚢 BATTLESHIP FLEET</h1>
+  <span>Hits: <span id="hits" style="color: #facc15;">0/10</span></span>
+</header>
+<div id="radar-box">
+  <div id="grid"></div>
+</div>
+<script>
+const N = 8;
+let enemyGrid = Array(N).fill(null).map(() => Array(N).fill(0));
+let hits = 0;
+
+// Randomly place 3 ships: lengths 4, 3, 3 (total 10 hits)
+function placeShip(len) {
+  let placed = false;
+  while (!placed) {
+    const horiz = Math.random() > 0.5;
+    const r = Math.floor(Math.random() * (horiz ? N : N - len));
+    const c = Math.floor(Math.random() * (horiz ? N - len : N));
+    let clear = true;
+    for (let i=0; i<len; i++) {
+      if (enemyGrid[horiz ? r : r+i][horiz ? c+i : c] === 1) clear = false;
+    }
+    if (clear) {
+      for (let i=0; i<len; i++) {
+        enemyGrid[horiz ? r : r+i][horiz ? c+i : c] = 1;
+      }
+      placed = true;
+    }
+  }
+}
+
+placeShip(4);
+placeShip(3);
+placeShip(3);
+
+const gridEl = document.getElementById('grid');
+for (let r=0; r<N; r++) {
+  for (let c=0; c<N; c++) {
+    const el = document.createElement('div');
+    el.className = 'cell';
+    el.onclick = () => fireMissile(r, c, el);
+    gridEl.appendChild(el);
+  }
+}
+
+function fireMissile(r, c, el) {
+  if (el.classList.contains('hit') || el.classList.contains('miss')) return;
+  if (enemyGrid[r][c] === 1) {
+    el.classList.add('hit');
+    el.innerText = '💥';
+    hits++;
+    document.getElementById('hits').innerText = `${hits}/10`;
+    if (hits === 10) setTimeout(() => alert("Victory! Enemy fleet sunken!"), 150);
+  } else {
+    el.classList.add('miss');
+    el.innerText = '•';
+  }
+}
+</script>
+</body>
+</html>
