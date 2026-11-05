@@ -58,7 +58,17 @@ export async function onRequest(context) {
     return response;
   }
 
-  // 2. Allow sub-resources (CSS, JS, images, audio, fonts)
+  // 2. Strict Whitelist Enforcement: Block any removed / unapproved games
+  const segments = pathname.split('/').filter(Boolean);
+  const gameKey = segments[0] || '';
+  const ALLOWED_GAMES = new Set(Object.keys(CANONICAL_GAME_MAP));
+  const ALLOWED_ROOT_FILES = new Set(['embed-guard.js', 'robots.txt', 'index.html', '_headers', 'rules.md', 'favicon.ico']);
+
+  if (gameKey && !ALLOWED_GAMES.has(gameKey) && !ALLOWED_ROOT_FILES.has(gameKey)) {
+    return new Response('Game not found', { status: 404, statusText: 'Not Found' });
+  }
+
+  // 3. Allow sub-resources (CSS, JS, images, audio, fonts) for allowed games
   const secFetchDest = (request.headers.get('sec-fetch-dest') || '').toLowerCase();
   const isAssetDest = ['style', 'script', 'image', 'font', 'audio', 'video'].includes(secFetchDest);
   const isStaticAsset = /\.(css|js|png|jpg|jpeg|gif|webp|svg|ico|mp3|ogg|wav|json|woff|woff2|ttf|eot)$/i.test(pathname);
