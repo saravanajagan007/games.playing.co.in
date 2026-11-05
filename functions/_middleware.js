@@ -93,9 +93,6 @@ export async function onRequest(context) {
   }
 
   // 4. Determine canonical target for direct navigation
-  const segments = pathname.split('/').filter(Boolean);
-  const gameKey = segments[0] || '';
-
   if (gameKey && CANONICAL_GAME_MAP[gameKey]) {
     return Response.redirect(CANONICAL_GAME_MAP[gameKey], 302);
   }
