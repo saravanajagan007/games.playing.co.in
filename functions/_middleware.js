@@ -86,11 +86,8 @@ export async function onRequest(context) {
   const segments = pathname.split('/').filter(Boolean);
   const gameKey = segments[0] || '';
 
-  if (gameKey) {
-    if (CANONICAL_GAME_MAP[gameKey]) {
-      return Response.redirect(CANONICAL_GAME_MAP[gameKey], 302);
-    }
-    return Response.redirect(`https://playing.co.in/game/${gameKey}`, 302);
+  if (gameKey && CANONICAL_GAME_MAP[gameKey]) {
+    return Response.redirect(CANONICAL_GAME_MAP[gameKey], 302);
   }
 
   // 5. Default direct access redirect to playing.co.in home
